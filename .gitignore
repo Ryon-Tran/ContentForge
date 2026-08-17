@@ -1,0 +1,11 @@
+# Chặn toàn bộ thư mục node_modules
+node_modules/
+
+# Chặn file chứa thông tin bảo mật/môi trường (nếu có)
+.env
+.env.local
+
+# Chặn các file nhật ký lỗi (nếu có)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
