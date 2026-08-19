@@ -10,6 +10,7 @@ import {
 } from '../types';
 
 import { PageLayout } from '../layouts/PageLayout';
+import { Button } from '../components/ui/Button';
 
 import {
   useI18n
@@ -41,6 +42,182 @@ const EMPTY_FORM: FormState = {
   apiKey: '',
   isActive: true,
   isDefault: false
+};
+
+interface ProviderPreset {
+  label: string;
+  provider: string;
+  name: string;
+  model: string;
+  baseUrl: string;
+}
+
+
+const PROVIDER_PRESETS:
+  Record<AIProviderType, ProviderPreset[]> = {
+
+  TEXT: [
+    {
+      label: 'Google Gemini',
+      provider: 'google',
+      name: 'Gemini Text',
+      model: 'gemini-2.5-flash',
+      baseUrl: 'https://generativelanguage.googleapis.com'
+    },
+    {
+      label: 'OpenAI ChatGPT',
+      provider: 'openai',
+      name: 'OpenAI Text',
+      model: 'gpt-4.1-mini',
+      baseUrl: 'https://api.openai.com/v1'
+    },
+    {
+      label: 'OpenRouter / Khác',
+      provider: 'openrouter',
+      name: 'OpenRouter Text',
+      model: 'openai/gpt-4.1-mini',
+      baseUrl: 'https://openrouter.ai/api/v1'
+    },
+    {
+      label: 'xAI Grok',
+      provider: 'xai',
+      name: 'xAI Grok Text',
+      model: 'grok-4.5',
+      baseUrl: 'https://api.x.ai/v1'
+    },
+    {
+      label: 'Anthropic Claude',
+      provider: 'anthropic',
+      name: 'Claude Text',
+      model: 'claude-sonnet-5',
+      baseUrl: 'https://api.anthropic.com'
+    },
+    {
+      label: 'DeepSeek',
+      provider: 'deepseek',
+      name: 'DeepSeek Text',
+      model: 'deepseek-v4-flash',
+      baseUrl: 'https://api.deepseek.com'
+    },
+    {
+      label: 'Groq',
+      provider: 'groq',
+      name: 'Groq Text',
+      model: 'openai/gpt-oss-20b',
+      baseUrl: 'https://api.groq.com/openai/v1'
+    },
+    {
+      label: 'Mistral AI',
+      provider: 'mistral',
+      name: 'Mistral Text',
+      model: 'mistral-large-latest',
+      baseUrl: 'https://api.mistral.ai/v1'
+    },
+    {
+      label: 'Together AI',
+      provider: 'together',
+      name: 'Together Text',
+      model: 'openai/gpt-oss-20b',
+      baseUrl: 'https://api.together.ai/v1'
+    },
+    {
+      label: 'Fireworks AI',
+      provider: 'fireworks',
+      name: 'Fireworks Text',
+      model: 'accounts/fireworks/models/llama-v3p1-70b-instruct',
+      baseUrl: 'https://api.fireworks.ai/inference/v1'
+    },
+    {
+      label: 'Cerebras',
+      provider: 'cerebras',
+      name: 'Cerebras Text',
+      model: 'gpt-oss-120b',
+      baseUrl: 'https://api.cerebras.ai/v1'
+    },
+    {
+      label: 'Perplexity Sonar',
+      provider: 'perplexity',
+      name: 'Perplexity Text',
+      model: 'sonar',
+      baseUrl: 'https://api.perplexity.ai/v1'
+    },
+    {
+      label: 'Ollama Local',
+      provider: 'ollama',
+      name: 'Ollama Local',
+      model: 'gpt-oss:20b',
+      baseUrl: 'http://127.0.0.1:11434/v1'
+    },
+    {
+      label: 'Custom OpenAI-compatible',
+      provider: 'custom',
+      name: 'Custom Text',
+      model: '',
+      baseUrl: ''
+    }
+  ],
+
+  IMAGE: [
+    {
+      label: 'Google Imagen/Gemini',
+      provider: 'google',
+      name: 'Google Image',
+      model: 'imagen-4.0-generate-preview-06-06',
+      baseUrl: 'https://generativelanguage.googleapis.com'
+    },
+    {
+      label: 'OpenAI DALL-E',
+      provider: 'openai',
+      name: 'OpenAI Image',
+      model: 'gpt-image-1',
+      baseUrl: 'https://api.openai.com/v1'
+    },
+    {
+      label: 'xAI Grok',
+      provider: 'xai',
+      name: 'xAI Image',
+      model: 'grok-2-image',
+      baseUrl: 'https://api.x.ai/v1'
+    },
+    {
+      label: 'Together AI',
+      provider: 'together',
+      name: 'Together Image',
+      model: 'black-forest-labs/FLUX.2-dev',
+      baseUrl: 'https://api.together.ai/v1'
+    },
+    {
+      label: 'Custom OpenAI-compatible',
+      provider: 'custom',
+      name: 'Custom Image',
+      model: '',
+      baseUrl: ''
+    }
+  ],
+
+  VIDEO: [
+    {
+      label: 'Google Veo',
+      provider: 'google',
+      name: 'Google Veo',
+      model: 'veo-3.0-generate-preview',
+      baseUrl: 'https://generativelanguage.googleapis.com'
+    },
+    {
+      label: 'xAI Grok',
+      provider: 'xai',
+      name: 'xAI Video',
+      model: 'grok-2-video',
+      baseUrl: 'https://api.x.ai/v1'
+    },
+    {
+      label: 'Custom xAI-compatible',
+      provider: 'grok',
+      name: 'Custom Video',
+      model: '',
+      baseUrl: 'https://api.x.ai/v1'
+    }
+  ]
 };
 
 
@@ -84,6 +261,20 @@ export const ConfigModule:
     useState<string | null>(
       null
     );
+
+
+  const [
+    isFormOpen,
+    setIsFormOpen
+  ] =
+    useState(false);
+
+
+  const [
+    showAdvancedFields,
+    setShowAdvancedFields
+  ] =
+    useState(false);
 
 
   // =========================================================
@@ -187,6 +378,14 @@ export const ConfigModule:
     );
 
     setShowFormKey(
+      false
+    );
+
+    setShowAdvancedFields(
+      false
+    );
+
+    setIsFormOpen(
       false
     );
 
@@ -350,6 +549,154 @@ export const ConfigModule:
         [key]:
           value
       })
+    );
+
+  };
+
+
+  const getProviderPreset = (
+    type: AIProviderType,
+    provider: string
+  ) =>
+    PROVIDER_PRESETS[
+      type
+    ].find(
+      preset =>
+        preset.provider ===
+        provider
+    );
+
+
+  const getDefaultPreset = (
+    type: AIProviderType
+  ) =>
+    PROVIDER_PRESETS[
+      type
+    ][0];
+
+
+  const applyPresetToForm = (
+    preset: ProviderPreset
+  ) => {
+
+    setForm(
+      prev => ({
+        ...prev,
+        name:
+          preset.name,
+        provider:
+          preset.provider,
+        model:
+          preset.model,
+        baseUrl:
+          preset.baseUrl
+      })
+    );
+
+  };
+
+
+  const startCreate = () => {
+
+    clearMessages();
+
+    const preset =
+      getDefaultPreset(
+        EMPTY_FORM.type
+      );
+
+    setEditingId(
+      null
+    );
+
+    setForm({
+      ...EMPTY_FORM,
+      name:
+        preset.name,
+      provider:
+        preset.provider,
+      model:
+        preset.model,
+      baseUrl:
+        preset.baseUrl
+    });
+
+    setShowFormKey(
+      false
+    );
+
+    setShowAdvancedFields(
+      false
+    );
+
+    setIsFormOpen(
+      true
+    );
+
+  };
+
+
+  const updateProviderType = (
+    type: AIProviderType
+  ) => {
+
+    const preset =
+      getDefaultPreset(
+        type
+      );
+
+    setForm(
+      prev => ({
+        ...prev,
+        type,
+        name:
+          preset.name,
+        provider:
+          preset.provider,
+        model:
+          preset.model,
+        baseUrl:
+          preset.baseUrl
+      })
+    );
+
+    setShowAdvancedFields(
+      false
+    );
+
+  };
+
+
+  const updateProviderName = (
+    provider: string
+  ) => {
+
+    const preset =
+      getProviderPreset(
+        form.type,
+        provider
+      );
+
+    if (
+      preset
+    ) {
+
+      applyPresetToForm(
+        preset
+      );
+
+      setShowAdvancedFields(
+        !preset.model ||
+        !preset.baseUrl
+      );
+
+      return;
+
+    }
+
+    updateForm(
+      'provider',
+      provider
     );
 
   };
@@ -777,7 +1124,7 @@ export const ConfigModule:
       ) {
 
         setError(
-          'Vui lòng nhập đầy đủ Tên hiển thị, Provider, Model và Base URL.'
+          'Vui lòng kiểm tra Provider, Model và Base URL trong phần Tùy chỉnh.'
         );
 
         return;
@@ -962,6 +1309,16 @@ export const ConfigModule:
           );
 
 
+          setShowAdvancedFields(
+            false
+          );
+
+
+          setIsFormOpen(
+            false
+          );
+
+
           setForm({
             ...EMPTY_FORM
           });
@@ -1051,6 +1408,16 @@ export const ConfigModule:
         );
 
 
+        setShowAdvancedFields(
+          false
+        );
+
+
+        setIsFormOpen(
+          false
+        );
+
+
         setMessage(
           'Đã thêm AI thành công.'
         );
@@ -1133,6 +1500,16 @@ export const ConfigModule:
 
     setShowFormKey(
       false
+    );
+
+
+    setShowAdvancedFields(
+      true
+    );
+
+
+    setIsFormOpen(
+      true
     );
 
 
@@ -1370,12 +1747,62 @@ export const ConfigModule:
     <PageLayout
       title={t('config.title', 'CẤU HÌNH AI')}
       description="Quản lý AI Provider, Model, Base URL và API Key."
+      actions={
+        <>
+          <Button
+            type="button"
+            size="sm"
+            variant={
+              isFormOpen
+                ? 'secondary'
+                : 'primary'
+            }
+            icon={
+              isFormOpen
+                ? 'close'
+                : 'add'
+            }
+            onClick={
+              isFormOpen
+                ? resetForm
+                : startCreate
+            }
+          >
+            {
+              isFormOpen
+                ? 'ĐÓNG'
+                : 'THÊM AI'
+            }
+          </Button>
+
+          <div className="text-[11px] font-semibold px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600">
+            {providers.length} AI
+          </div>
+        </>
+      }
     >
-      <div className="p-6 space-y-6">
+      <div className="h-full flex flex-col min-h-0">
 
         {/* ===================================================
             FORM
         ==================================================== */}
+
+        {
+          isFormOpen && (
+
+        <div
+          className="
+            p-4
+            border-b
+          "
+          style={{
+            background:
+              'var(--bg-main)',
+
+            borderColor:
+              'var(--border)'
+          }}
+        >
 
         <form
           onSubmit={
@@ -1384,7 +1811,8 @@ export const ConfigModule:
 
           className="
             soft-card
-            space-y-5
+            flat-card
+            space-y-4
           "
         >
 
@@ -1404,7 +1832,10 @@ export const ConfigModule:
               <div
                 className="
                   font-bold
-                  text-[15px]
+                  text-[14px]
+                  flex
+                  items-center
+                  gap-2
                 "
 
                 style={{
@@ -1415,8 +1846,22 @@ export const ConfigModule:
 
                 {
                   editingId
-                    ? '✏️ SỬA AI'
-                    : '+ THÊM AI'
+                    ? (
+                      <>
+                        <span className="material-symbols-outlined text-[18px]">
+                          edit
+                        </span>
+                        SỬA AI
+                      </>
+                    )
+                    : (
+                      <>
+                        <span className="material-symbols-outlined text-[18px]">
+                          add
+                        </span>
+                        THÊM AI
+                      </>
+                    )
                 }
 
               </div>
@@ -1439,7 +1884,7 @@ export const ConfigModule:
 
                     ? 'Key cũ vẫn được giữ. Bấm con mắt để xem hoặc nút sao chép để copy key.'
 
-                    : 'Nhập Provider, Model, Base URL và API Key.'
+                    : 'Chọn loại AI, provider rồi nhập API Key. Model và Base URL đã được điền sẵn.'
                 }
 
               </div>
@@ -1463,16 +1908,10 @@ export const ConfigModule:
                   "
                 >
 
-                  <span
-                    className="
-                      material-symbols-outlined
-                      text-[18px]
-                    "
-                  >
+                  <span className="material-symbols-outlined text-[18px]">
                     close
                   </span>
-
-                  HỦY SỬA
+                  HỦY
 
                 </button>
 
@@ -1482,7 +1921,7 @@ export const ConfigModule:
           </div>
 
 
-          {/* ROW 1 */}
+          {/* QUICK SETUP */}
 
           <div
             className="
@@ -1493,45 +1932,6 @@ export const ConfigModule:
             "
           >
 
-            {/* NAME */}
-
-            <div>
-
-              <label
-                className="
-                  block
-                  text-[11px]
-                  font-semibold
-                  mb-2
-                "
-              >
-                Tên hiển thị
-              </label>
-
-
-              <input
-                type="text"
-
-                value={
-                  form.name
-                }
-
-                onChange={
-                  e =>
-                    updateForm(
-                      'name',
-                      e.currentTarget.value
-                    )
-                }
-
-                className="form-input"
-
-                placeholder="Ví dụ: OpenAI Image"
-              />
-
-            </div>
-
-
             {/* TYPE */}
 
             <div>
@@ -1539,12 +1939,16 @@ export const ConfigModule:
               <label
                 className="
                   block
-                  text-[11px]
-                  font-semibold
-                  mb-2
+                  text-[10px]
+                  font-bold
+                  mb-1
                 "
+                style={{
+                  color:
+                    'var(--text-muted)'
+                }}
               >
-                Loại AI
+                LOẠI AI
               </label>
 
 
@@ -1554,15 +1958,10 @@ export const ConfigModule:
                 }
 
                 onChange={
-                  e => {
-                    const newType = e.currentTarget.value as AIProviderType;
-                    setForm(prev => ({
-                      ...prev,
-                      type: newType,
-                      provider: '',
-                      model: ''
-                    }));
-                  }
+                  e =>
+                    updateProviderType(
+                      e.currentTarget.value as AIProviderType
+                    )
                 }
 
                 className="form-select"
@@ -1584,19 +1983,6 @@ export const ConfigModule:
 
             </div>
 
-          </div>
-
-
-          {/* ROW 2 */}
-
-          <div
-            className="
-              grid
-              grid-cols-1
-              lg:grid-cols-2
-              gap-4
-            "
-          >
 
             {/* PROVIDER */}
 
@@ -1605,124 +1991,316 @@ export const ConfigModule:
               <label
                 className="
                   block
-                  text-[11px]
-                  font-semibold
-                  mb-2
+                  text-[10px]
+                  font-bold
+                  mb-1
                 "
+                style={{
+                  color:
+                    'var(--text-muted)'
+                }}
               >
-                Provider
+                PROVIDER
               </label>
 
 
               <select
-                value={form.provider}
-                onChange={e => updateForm('provider', e.currentTarget.value)}
-                className="form-select"
-              >
-                <option value="">-- Chọn Provider --</option>
-                {form.type === 'TEXT' && (
-                  <>
-                    <option value="google">Google (Gemini)</option>
-                    <option value="openai">OpenAI (ChatGPT)</option>
-                    <option value="openrouter">OpenRouter / Khác</option>
-                  </>
-                )}
-                {form.type === 'IMAGE' && (
-                  <>
-                    <option value="google">Google (Imagen/Gemini)</option>
-                    <option value="openai">OpenAI (DALL-E)</option>
-                    <option value="xai">xAI (Grok)</option>
-                  </>
-                )}
-                {form.type === 'VIDEO' && (
-                  <>
-                    <option value="google">Google (Veo)</option>
-                    <option value="xai">xAI (Grok)</option>
-                  </>
-                )}
-              </select>
-
-            </div>
-
-
-            {/* MODEL */}
-
-            <div>
-
-              <label
-                className="
-                  block
-                  text-[11px]
-                  font-semibold
-                  mb-2
-                "
-              >
-                Model
-              </label>
-
-
-              <input
-                type="text"
-
                 value={
-                  form.model
+                  form.provider
                 }
 
                 onChange={
                   e =>
-                    updateForm(
-                      'model',
+                    updateProviderName(
                       e.currentTarget.value
                     )
                 }
 
-                className="form-input"
+                className="form-select"
+              >
 
-                placeholder="Tên model"
-              />
+                {
+                  form.provider &&
+                  !getProviderPreset(
+                    form.type,
+                    form.provider
+                  ) && (
+
+                    <option value={form.provider}>
+                      {form.provider}
+                    </option>
+
+                  )
+                }
+
+                {
+                  PROVIDER_PRESETS[
+                    form.type
+                  ].map(
+                    preset => (
+
+                      <option
+                        key={
+                          preset.provider
+                        }
+                        value={
+                          preset.provider
+                        }
+                      >
+                        {preset.label}
+                      </option>
+
+                    )
+                  )
+                }
+
+              </select>
 
             </div>
 
           </div>
 
 
-          {/* BASE URL */}
+          <div
+            className="
+              flex
+              flex-wrap
+              items-center
+              justify-between
+              gap-3
+              rounded-lg
+              border
+              px-3
+              py-2
+              text-[11px]
+            "
+            style={{
+              background:
+                'var(--bg-soft)',
 
-          <div>
+              borderColor:
+                'var(--border)'
+            }}
+          >
 
-            <label
+            <div
               className="
-                block
-                text-[11px]
-                font-semibold
-                mb-2
+                min-w-0
+                flex-1
               "
+              style={{
+                color:
+                  'var(--text-secondary)'
+              }}
             >
-              Base URL
-            </label>
+              <strong>
+                {form.name || 'AI mới'}
+              </strong>
+              {' · '}
+              {form.model || 'Chưa có model'}
+              {' · '}
+              <span className="break-all">
+                {form.baseUrl || 'Chưa có Base URL'}
+              </span>
+            </div>
 
 
-            <input
-              type="text"
-
-              value={
-                form.baseUrl
-              }
-
-              onChange={
-                e =>
-                  updateForm(
-                    'baseUrl',
-                    e.currentTarget.value
+            <button
+              type="button"
+              onClick={
+                () =>
+                  setShowAdvancedFields(
+                    prev =>
+                      !prev
                   )
               }
-
-              className="form-input"
-
-              placeholder="https://..."
-            />
+              className="
+                inline-flex
+                items-center
+                gap-1
+                shrink-0
+                text-[11px]
+                font-bold
+                text-blue-600
+              "
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                {
+                  showAdvancedFields
+                    ? 'expand_less'
+                    : 'tune'
+                }
+              </span>
+              TÙY CHỈNH
+            </button>
 
           </div>
+
+
+          {
+            showAdvancedFields && (
+
+              <div
+                className="
+                  grid
+                  grid-cols-1
+                  lg:grid-cols-3
+                  gap-4
+                "
+              >
+
+                {/* NAME */}
+
+                <div>
+
+                  <label
+                    className="
+                      block
+                      text-[10px]
+                      font-bold
+                      mb-1
+                    "
+                    style={{
+                      color:
+                        'var(--text-muted)'
+                    }}
+                  >
+                    TÊN HIỂN THỊ
+                  </label>
+
+
+                  <input
+                    type="text"
+
+                    value={
+                      form.name
+                    }
+
+                    onChange={
+                      e =>
+                        updateForm(
+                          'name',
+                          e.currentTarget.value
+                        )
+                    }
+
+                    className="form-input"
+
+                    placeholder="Ví dụ: OpenAI Image"
+                  />
+
+                </div>
+
+
+                {/* MODEL */}
+
+                <div>
+
+                  <label
+                    className="
+                      block
+                      text-[10px]
+                      font-bold
+                      mb-1
+                    "
+                    style={{
+                      color:
+                        'var(--text-muted)'
+                    }}
+                  >
+                    MODEL
+                  </label>
+
+
+                  <input
+                    type="text"
+
+                    value={
+                      form.model
+                    }
+
+                    onChange={
+                      e =>
+                        updateForm(
+                          'model',
+                          e.currentTarget.value
+                        )
+                    }
+
+                    className="form-input"
+
+                    placeholder="Tên model"
+                    list="ai-model-presets"
+                  />
+
+                  <datalist id="ai-model-presets">
+                    {
+                      PROVIDER_PRESETS[
+                        form.type
+                      ].map(
+                        preset => (
+                          <option
+                            key={
+                              preset.model
+                            }
+                            value={
+                              preset.model
+                            }
+                          />
+                        )
+                      )
+                    }
+                  </datalist>
+
+                </div>
+
+
+                {/* BASE URL */}
+
+                <div>
+
+                  <label
+                    className="
+                      block
+                      text-[10px]
+                      font-bold
+                      mb-1
+                    "
+                    style={{
+                      color:
+                        'var(--text-muted)'
+                    }}
+                  >
+                    BASE URL
+                  </label>
+
+
+                  <input
+                    type="text"
+
+                    value={
+                      form.baseUrl
+                    }
+
+                    onChange={
+                      e =>
+                        updateForm(
+                          'baseUrl',
+                          e.currentTarget.value
+                        )
+                    }
+
+                    className="form-input"
+
+                    placeholder="https://..."
+                  />
+
+                </div>
+
+              </div>
+
+            )
+          }
 
 
           {/* ===================================================
@@ -1734,13 +2312,17 @@ export const ConfigModule:
             <label
               className="
                 block
-                text-[11px]
-                font-semibold
-                mb-2
+                text-[10px]
+                font-bold
+                mb-1
               "
+              style={{
+                color:
+                  'var(--text-muted)'
+              }}
             >
 
-              API Key
+              API KEY
 
               {
                 editingId && (
@@ -1863,8 +2445,9 @@ export const ConfigModule:
                   >
 
                     {
+                      editingId &&
                       keyLoadingId ===
-                      editingId
+                        editingId
 
                         ? 'progress_activity'
 
@@ -1882,7 +2465,7 @@ export const ConfigModule:
 
               {/* COPY */}
 
-              <button
+              <Button
                 type="button"
 
                 onClick={
@@ -1890,26 +2473,18 @@ export const ConfigModule:
                 }
 
                 className="
-                  btn-action
-                  btn-secondary
+                  h-11
                   shrink-0
                 "
 
                 title="Sao chép API Key"
+                variant="secondary"
+                icon="content_copy"
               >
-
-                <span
-                  className="
-                    material-symbols-outlined
-                    text-[18px]
-                  "
-                >
-                  content_copy
-                </span>
 
                 SAO CHÉP
 
-              </button>
+              </Button>
 
             </div>
 
@@ -2024,33 +2599,23 @@ export const ConfigModule:
             "
           >
 
-            <button
+            <Button
               type="submit"
 
-              disabled={
+              loading={
                 saving
               }
 
+              icon={
+                editingId
+                  ? 'save'
+                  : 'add'
+              }
+
               className="
-                btn-action
-                btn-primary
+                h-10
               "
             >
-
-              <span
-                className="
-                  material-symbols-outlined
-                  text-[19px]
-                "
-              >
-
-                {
-                  editingId
-                    ? 'save'
-                    : 'add'
-                }
-
-              </span>
 
 
               {
@@ -2061,29 +2626,7 @@ export const ConfigModule:
                     : 'THÊM AI'
               }
 
-            </button>
-
-
-            {
-              editingId && (
-
-                <button
-                  type="button"
-
-                  onClick={
-                    resetForm
-                  }
-
-                  className="
-                    btn-action
-                    btn-secondary
-                  "
-                >
-                  HỦY
-                </button>
-
-              )
-            }
+            </Button>
 
 
             {
@@ -2139,6 +2682,50 @@ export const ConfigModule:
 
         </form>
 
+        </div>
+
+          )
+        }
+
+
+        {
+          !isFormOpen &&
+          (message || error) && (
+
+            <div className="px-4 pt-4">
+
+              <div
+                className="
+                  p-3
+                  rounded-lg
+                  border
+                  text-[12px]
+                "
+                style={{
+                  background:
+                    error
+                      ? '#fef2f2'
+                      : '#f0fdf4',
+
+                  borderColor:
+                    error
+                      ? '#fecaca'
+                      : '#bbf7d0',
+
+                  color:
+                    error
+                      ? '#dc2626'
+                      : '#16a34a'
+                }}
+              >
+                {error || message}
+              </div>
+
+            </div>
+
+          )
+        }
+
 
         {/* ===================================================
             LIST HEADER
@@ -2149,6 +2736,9 @@ export const ConfigModule:
             flex
             items-center
             justify-between
+            px-4
+            pt-4
+            pb-3
           "
         >
 
@@ -2188,6 +2778,8 @@ export const ConfigModule:
             <div
               className="
                 soft-card
+                flat-card
+                mx-4
                 text-center
                 py-10
                 text-[12px]
@@ -2202,6 +2794,8 @@ export const ConfigModule:
             <div
               className="
                 soft-card
+                flat-card
+                mx-4
                 text-center
                 py-12
               "
@@ -2244,7 +2838,7 @@ export const ConfigModule:
                     'var(--text-muted)'
                 }}
               >
-                Thêm AI bằng biểu mẫu phía trên.
+                Bấm THÊM AI ở header để tạo cấu hình mới.
               </div>
 
             </div>
@@ -2253,7 +2847,9 @@ export const ConfigModule:
 
             <div
               className="
-                space-y-4
+                space-y-3
+                px-4
+                pb-4
               "
             >
 
@@ -2298,23 +2894,29 @@ export const ConfigModule:
                         }
 
                         className="
-                          soft-card
+                          rounded-lg
+                          border
+                          flat-card
+                          p-4
+                          bg-white
                           flex
                           flex-col
                           xl:flex-row
                           xl:items-center
                           justify-between
-                          gap-5
+                          gap-4
+                          transition-colors
                         "
 
                         style={{
-                          outline:
+                          background:
+                            'var(--bg-main)',
+
+                          borderColor:
                             editingId ===
                             item.id
-
-                              ? '2px solid #2563eb'
-
-                              : undefined
+                              ? '#2563eb'
+                              : 'var(--border)'
                         }}
                       >
 

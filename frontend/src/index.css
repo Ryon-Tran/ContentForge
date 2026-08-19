@@ -216,6 +216,19 @@ select {
   border-color: var(--border-glow);
 }
 
+.flat-card {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.flat-card:hover {
+  transform: none;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
 .soft-panel {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -271,6 +284,58 @@ tbody tr:hover .sheet-cell {
 }
 tbody tr:hover {
   box-shadow: inset 2px 0 0 var(--primary);
+}
+
+.activity-log-table .sheet-header {
+  padding: 12px 10px;
+  font-size: 11px;
+}
+
+.activity-log-table .sheet-cell {
+  height: 74px;
+  padding: 10px;
+}
+
+.activity-log-table .btn-action {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.activity-log-table .icon-button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.activity-log-table .icon-button:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.activity-log-table .icon-button.btn-primary {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.activity-log-table .icon-button.btn-danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.activity-log-error {
+  max-height: 48px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  border-color: transparent !important;
 }
 
 

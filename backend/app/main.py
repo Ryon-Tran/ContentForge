@@ -1560,6 +1560,214 @@ async def generate_openai_compatible_text(
 
 
 # =========================================================
+# TEXT - ANTHROPIC / CLAUDE
+# =========================================================
+
+async def generate_anthropic_text(
+    cfg: dict,
+    prompt: str
+) -> str:
+
+    base_url = (
+        cfg[
+            "base_url"
+        ]
+        .rstrip("/")
+    )
+
+
+    endpoint = (
+        f"{base_url}/messages"
+        if base_url.endswith(
+            "/v1"
+        )
+        else f"{base_url}/v1/messages"
+    )
+
+
+    result = await request_json(
+        "POST",
+
+        endpoint,
+
+        cfg[
+            "api_key"
+        ],
+
+        headers={
+            "Content-Type":
+                "application/json",
+
+            "x-api-key":
+                cfg[
+                    "api_key"
+                ],
+
+            "anthropic-version":
+                "2023-06-01"
+        },
+
+        auth_bearer=False,
+
+        json={
+            "model":
+                cfg[
+                    "model"
+                ],
+
+            "max_tokens":
+                2048,
+
+            "messages": [
+                {
+                    "role":
+                        "user",
+
+                    "content":
+                        prompt
+                }
+            ]
+        }
+    )
+
+
+    parts = []
+
+
+    for item in result.get(
+        "content",
+        []
+    ):
+
+        if (
+            isinstance(
+                item,
+                dict
+            )
+            and
+            item.get(
+                "type"
+            )
+            ==
+            "text"
+            and
+            item.get(
+                "text"
+            )
+        ):
+
+            parts.append(
+                item[
+                    "text"
+                ]
+            )
+
+
+    text = "\n".join(
+        parts
+    ).strip()
+
+
+    if not text:
+
+        raise HTTPException(
+            status_code=502,
+
+            detail=(
+                "Claude không trả về text."
+            )
+        )
+
+
+    return text
+
+
+# =========================================================
+# TEXT - PERPLEXITY / SONAR
+# =========================================================
+
+async def generate_perplexity_text(
+    cfg: dict,
+    prompt: str
+) -> str:
+
+    base_url = (
+        cfg[
+            "base_url"
+        ]
+        .rstrip("/")
+    )
+
+
+    endpoint = (
+        f"{base_url}/sonar"
+        if base_url.endswith(
+            "/v1"
+        )
+        else f"{base_url}/v1/sonar"
+    )
+
+
+    result = await request_json(
+        "POST",
+
+        endpoint,
+
+        cfg[
+            "api_key"
+        ],
+
+        json={
+            "model":
+                cfg[
+                    "model"
+                ],
+
+            "messages": [
+                {
+                    "role":
+                        "user",
+
+                    "content":
+                        prompt
+                }
+            ]
+        }
+    )
+
+
+    try:
+
+        content = (
+            result[
+                "choices"
+            ][0][
+                "message"
+            ][
+                "content"
+            ]
+        )
+
+
+    except Exception as exc:
+
+        raise HTTPException(
+            status_code=502,
+
+            detail=(
+                "Perplexity không trả "
+                "format text hợp lệ: "
+                f"{exc}"
+            )
+        )
+
+
+    return str(
+        content
+    ).strip()
+
+
+# =========================================================
 # TEXT ROUTER
 # =========================================================
 
@@ -1600,6 +1808,28 @@ async def generate_text(
     }:
 
         text = await generate_openai_text(
+            cfg,
+            data.prompt
+        )
+
+
+    elif provider in {
+        "anthropic",
+        "claude"
+    }:
+
+        text = await generate_anthropic_text(
+            cfg,
+            data.prompt
+        )
+
+
+    elif provider in {
+        "perplexity",
+        "sonar"
+    }:
+
+        text = await generate_perplexity_text(
             cfg,
             data.prompt
         )

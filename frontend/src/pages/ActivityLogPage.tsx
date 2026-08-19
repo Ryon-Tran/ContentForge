@@ -539,7 +539,8 @@ export const ActivityLogModule:
 
       <div
         className="
-          p-4
+          px-6
+          py-3
           border-b
         "
         style={{
@@ -553,11 +554,10 @@ export const ActivityLogModule:
 
         <div
           className="
-            soft-card
             grid
             grid-cols-1
             md:grid-cols-3
-            gap-3
+            gap-4
           "
         >
 
@@ -740,8 +740,8 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
           <div className="h-full overflow-auto dark-scrollbar p-0">
 
             <table
-              className="table-fixed"
-              style={{ minWidth: '1700px' }}
+              className="activity-log-table table-fixed"
+              style={{ minWidth: '1120px' }}
             >
 
               <thead>
@@ -751,7 +751,7 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                   <th
                     className="
                       sheet-header
-                      w-44
+                      w-36
                     "
                   >
                     THỜI GIAN
@@ -761,30 +761,10 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                   <th
                     className="
                       sheet-header
-                      w-28
+                      w-44
                     "
                   >
-                    MODULE
-                  </th>
-
-
-                  <th
-                    className="
-                      sheet-header
-                      w-36
-                    "
-                  >
-                    HOẠT ĐỘNG
-                  </th>
-
-
-                  <th
-                    className="
-                      sheet-header
-                      w-24
-                    "
-                  >
-                    STT
+                    MODULE / HOẠT ĐỘNG
                   </th>
 
 
@@ -794,14 +774,14 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                       w-44
                     "
                   >
-                    NHÂN VẬT / CHỦ THỂ
+                    STT / CHỦ THỂ
                   </th>
 
 
                   <th
                     className="
                       sheet-header
-                      w-32
+                      w-28
                     "
                   >
                     TRẠNG THÁI
@@ -811,7 +791,7 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                   <th
                     className="
                       sheet-header
-                      w-80
+                      w-96
                     "
                   >
                     NỘI DUNG
@@ -821,37 +801,17 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                   <th
                     className="
                       sheet-header
-                      w-72
-                    "
-                  >
-                    FILE
-                  </th>
-
-
-                  <th
-                    className="
-                      sheet-header
-                      w-72
-                    "
-                  >
-                    LỖI
-                  </th>
-
-
-                  <th
-                    className="
-                      sheet-header
                       w-64
                     "
                   >
-                    GHI CHÚ
+                    FILE / LỖI
                   </th>
 
 
                   <th
                     className="
                       sheet-header
-                      w-44
+                      w-24
                       text-center
                     "
                   >
@@ -874,7 +834,7 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
 
                       <td
                         colSpan={
-                          11
+                          7
                         }
                         className="
                           sheet-cell
@@ -947,105 +907,105 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
 
                           <td className="sheet-cell">
 
-                            <span
-                              className="
-                                inline-flex
-                                px-2
-                                py-1
-                                rounded-lg
-                                text-[10px]
-                                font-bold
-                                border
-                              "
-                              style={{
-                                background:
-                                  'var(--bg-soft)',
-
-                                borderColor:
-                                  'var(--border)',
-
-                                color:
-                                  'var(--text-secondary)'
-                              }}
-                            >
-                              {
-                                moduleLabel(
-                                  item.module
-                                )
-                              }
-                            </span>
-
-                          </td>
-
-
-                          {/* TYPE */}
-
-                          <td className="sheet-cell">
-
                             <div
                               className="
-                                text-[11px]
-                                font-bold
+                                space-y-2
                               "
                             >
-                              {
-                                typeLabel(
-                                  item.type
-                                )
-                              }
+                              <span
+                                className="
+                                  inline-flex
+                                  px-2
+                                  py-1
+                                  rounded-lg
+                                  text-[10px]
+                                  font-bold
+                                  border
+                                "
+                                style={{
+                                  background:
+                                    'var(--bg-soft)',
+
+                                  borderColor:
+                                    'var(--border)',
+
+                                  color:
+                                    'var(--text-secondary)'
+                                }}
+                              >
+                                {
+                                  moduleLabel(
+                                    item.module
+                                  )
+                                }
+                              </span>
+
+                              <div
+                                className="
+                                  text-[11px]
+                                  font-bold
+                                  leading-snug
+                                "
+                              >
+                                {
+                                  typeLabel(
+                                    item.type
+                                  )
+                                }
+                              </div>
                             </div>
 
                           </td>
 
 
-                          {/* STT */}
-
-                          <td className="sheet-cell">
-
-                            <span
-                              className="
-                                inline-flex
-                                min-w-10
-                                justify-center
-                                px-2
-                                py-1
-                                rounded-lg
-                                border
-                                text-[11px]
-                                font-bold
-                              "
-                              style={{
-                                background:
-                                  'var(--bg-soft)',
-
-                                borderColor:
-                                  'var(--border)'
-                              }}
-                            >
-                              {
-                                item.stt ||
-                                '-'
-                              }
-                            </span>
-
-                          </td>
-
-
-                          {/* SUBJECT */}
+                          {/* STT + SUBJECT */}
 
                           <td className="sheet-cell">
 
                             <div
                               className="
-                                text-[11px]
-                                font-semibold
-                                break-words
+                                space-y-2
                               "
                             >
-                              {
-                                item.subject ||
-                                '-'
-                              }
+                              <span
+                                className="
+                                  inline-flex
+                                  min-w-10
+                                  justify-center
+                                  px-2
+                                  py-1
+                                  rounded-lg
+                                  border
+                                  text-[11px]
+                                  font-bold
+                                "
+                                style={{
+                                  background:
+                                    'var(--bg-soft)',
+
+                                  borderColor:
+                                    'var(--border)'
+                                }}
+                              >
+                                {
+                                  item.stt ||
+                                  '-'
+                                }
+                              </span>
+
+                              <div
+                                className="
+                                  text-[11px]
+                                  font-semibold
+                                  leading-snug
+                                  break-words
+                                "
+                              >
+                                {
+                                  item.subject ||
+                                  '-'
+                                }
+                              </div>
                             </div>
 
                           </td>
@@ -1089,37 +1049,94 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                               editing
                                 ? (
 
-                                <textarea
-                                  value={
-                                    editMessage
-                                  }
-
-                                  onChange={
-                                    e =>
-                                      setEditMessage(
-                                        e.currentTarget
-                                          .value
-                                      )
-                                  }
-
+                                <div
                                   className="
-                                    min-h-[80px]
+                                    space-y-2
                                   "
-                                />
+                                >
+                                  <textarea
+                                    value={
+                                      editMessage
+                                    }
+
+                                    onChange={
+                                      e =>
+                                        setEditMessage(
+                                          e.currentTarget
+                                            .value
+                                        )
+                                    }
+
+                                    className="
+                                      min-h-[70px]
+                                    "
+                                  />
+
+                                  <textarea
+                                    value={
+                                      editNote
+                                    }
+
+                                    onChange={
+                                      e =>
+                                        setEditNote(
+                                          e.currentTarget
+                                            .value
+                                        )
+                                    }
+
+                                    placeholder="
+Ghi chú...
+"
+
+                                    className="
+                                      min-h-[56px]
+                                    "
+                                  />
+                                </div>
 
                               )
                                 : (
 
-                                <div
-                                  className="
-                                    text-[11px]
-                                    leading-relaxed
-                                    whitespace-pre-wrap
-                                    break-words
-                                  "
-                                >
+                                <div className="space-y-2">
+                                  <div
+                                    className="
+                                      text-[11px]
+                                      leading-relaxed
+                                      whitespace-pre-wrap
+                                      break-words
+                                    "
+                                  >
+                                    {
+                                      item.message
+                                    }
+                                  </div>
+
                                   {
-                                    item.message
+                                    item.note && (
+
+                                      <div
+                                        className="
+                                          text-[10px]
+                                          leading-relaxed
+                                          whitespace-pre-wrap
+                                          break-words
+                                          rounded-md
+                                          px-2
+                                          py-1.5
+                                        "
+                                        style={{
+                                          background:
+                                            'var(--bg-soft)',
+
+                                          color:
+                                            'var(--text-secondary)'
+                                        }}
+                                      >
+                                        {item.note}
+                                      </div>
+
+                                    )
                                   }
                                 </div>
 
@@ -1129,135 +1146,66 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                           </td>
 
 
-                          {/* FILE */}
+                          {/* FILE + ERROR */}
 
                           <td className="sheet-cell">
 
                             <div
                               className="
-                                text-[10px]
-                                break-all
+                                space-y-2
                               "
-                              style={{
-                                color:
-                                  'var(--text-secondary)'
-                              }}
                             >
+                              <div
+                                className="
+                                  text-[10px]
+                                  break-all
+                                "
+                                style={{
+                                  color:
+                                    'var(--text-secondary)'
+                                }}
+                              >
+                                {
+                                  item.filePath ||
+                                  '-'
+                                }
+                              </div>
+
                               {
-                                item.filePath ||
-                                '-'
+                                item.error && (
+
+                                  <div
+                                    className="
+                                      activity-log-error
+                                      text-[10px]
+                                      leading-relaxed
+                                      break-words
+                                      p-2
+                                      rounded-lg
+                                      border
+                                    "
+                                    style={{
+                                      background:
+                                        '#fef2f2',
+
+                                      borderColor:
+                                        '#fecaca',
+
+                                      color:
+                                        '#b91c1c'
+                                    }}
+                                    title={
+                                      item.error
+                                    }
+                                  >
+                                    {
+                                      item.error
+                                    }
+                                  </div>
+
+                                )
                               }
                             </div>
-
-                          </td>
-
-
-                          {/* ERROR */}
-
-                          <td className="sheet-cell">
-
-                            {
-                              item.error
-                                ? (
-
-                                <div
-                                  className="
-                                    text-[10px]
-                                    leading-relaxed
-                                    break-words
-                                    p-2
-                                    rounded-lg
-                                    border
-                                  "
-                                  style={{
-                                    background:
-                                      '#fef2f2',
-
-                                    borderColor:
-                                      '#fecaca',
-
-                                    color:
-                                      '#b91c1c'
-                                  }}
-                                >
-                                  {
-                                    item.error
-                                  }
-                                </div>
-
-                              )
-                                : (
-
-                                <span
-                                  className="
-                                    text-[10px]
-                                  "
-                                  style={{
-                                    color:
-                                      'var(--text-muted)'
-                                  }}
-                                >
-                                  -
-                                </span>
-
-                              )
-                            }
-
-                          </td>
-
-
-                          {/* NOTE */}
-
-                          <td className="sheet-cell">
-
-                            {
-                              editing
-                                ? (
-
-                                <textarea
-                                  value={
-                                    editNote
-                                  }
-
-                                  onChange={
-                                    e =>
-                                      setEditNote(
-                                        e.currentTarget
-                                          .value
-                                      )
-                                  }
-
-                                  placeholder="
-Ghi chú...
-"
-
-                                  className="
-                                    min-h-[80px]
-                                  "
-                                />
-
-                              )
-                                : (
-
-                                <div
-                                  className="
-                                    text-[10px]
-                                    whitespace-pre-wrap
-                                    break-words
-                                  "
-                                  style={{
-                                    color:
-                                      'var(--text-secondary)'
-                                  }}
-                                >
-                                  {
-                                    item.note ||
-                                    '-'
-                                  }
-                                </div>
-
-                              )
-                            }
 
                           </td>
 
@@ -1275,13 +1223,7 @@ Ghi chú...
                               editing
                                 ? (
 
-                                <div
-                                  className="
-                                    flex
-                                    flex-col
-                                    gap-2
-                                  "
-                                >
+                                <div className="inline-flex items-center justify-center gap-1">
 
                                   <button
                                     type="button"
@@ -1294,11 +1236,14 @@ Ghi chú...
                                     }
 
                                     className="
-                                      btn-action
+                                      icon-button
                                       btn-primary
                                     "
+                                    title="Lưu"
                                   >
-                                    LƯU
+                                    <span className="material-symbols-outlined text-[16px]">
+                                      save
+                                    </span>
                                   </button>
 
 
@@ -1310,11 +1255,14 @@ Ghi chú...
                                     }
 
                                     className="
-                                      btn-action
+                                      icon-button
                                       btn-secondary
                                     "
+                                    title="Hủy"
                                   >
-                                    HỦY
+                                    <span className="material-symbols-outlined text-[16px]">
+                                      close
+                                    </span>
                                   </button>
 
                                 </div>
@@ -1322,13 +1270,7 @@ Ghi chú...
                               )
                                 : (
 
-                                <div
-                                  className="
-                                    flex
-                                    flex-col
-                                    gap-2
-                                  "
-                                >
+                                <div className="inline-flex items-center justify-center gap-1">
 
                                   <button
                                     type="button"
@@ -1341,9 +1283,10 @@ Ghi chú...
                                     }
 
                                     className="
-                                      btn-action
+                                      icon-button
                                       btn-secondary
                                     "
+                                    title="Sửa"
                                   >
 
                                     <span
@@ -1354,8 +1297,6 @@ Ghi chú...
                                     >
                                       edit
                                     </span>
-
-                                    SỬA
 
                                   </button>
 
@@ -1371,9 +1312,10 @@ Ghi chú...
                                     }
 
                                     className="
-                                      btn-action
+                                      icon-button
                                       btn-danger
                                     "
+                                    title="Xóa"
                                   >
 
                                     <span
@@ -1384,8 +1326,6 @@ Ghi chú...
                                     >
                                       delete
                                     </span>
-
-                                    XÓA
 
                                   </button>
 
