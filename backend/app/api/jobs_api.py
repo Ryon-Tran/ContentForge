@@ -80,3 +80,15 @@ def retry_job(job_id: str):
         return {"status": "ok"}
     finally:
         conn.close()
+
+@router.get("/{job_id}", response_model=JobResponse)
+def get_job(job_id: str):
+    conn = get_db()
+    try:
+        cursor = conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,))
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return dict(row)
+    finally:
+        conn.close()

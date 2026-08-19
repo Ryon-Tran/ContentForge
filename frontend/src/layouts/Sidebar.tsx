@@ -370,6 +370,17 @@ export const Sidebar:
 
 
         <NavItem
+          id="QUEUE"
+          icon="queue"
+
+          label={t(
+            'sidebar.queue',
+            'Hàng Đợi'
+          )}
+        />
+
+
+        <NavItem
           id="ACTIVITY_LOG"
           icon="history"
 

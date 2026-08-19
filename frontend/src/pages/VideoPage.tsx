@@ -68,8 +68,8 @@ export const VideoModule:
   ) => {
 
     setVideoItems(
-      prev =>
-        prev.map(
+      prev => {
+        const next = prev.map(
           row =>
             row.id === id
               ? {
@@ -78,7 +78,13 @@ export const VideoModule:
                     value
                 }
               : row
-        )
+        );
+        const updatedRow = next.find(r => r.id === id);
+        if (updatedRow) {
+          service.storage.saveRow(updatedRow, 'video').catch(console.error);
+        }
+        return next;
+      }
     );
 
   };
@@ -90,8 +96,8 @@ export const VideoModule:
   ) => {
 
     setVideoItems(
-      prev =>
-        prev.map(
+      prev => {
+        const next = prev.map(
           row =>
             row.id === id
               ? {
@@ -99,7 +105,13 @@ export const VideoModule:
                   ...patch
                 }
               : row
-        )
+        );
+        const updatedRow = next.find(r => r.id === id);
+        if (updatedRow) {
+          service.storage.saveRow(updatedRow, 'video').catch(console.error);
+        }
+        return next;
+      }
     );
 
   };
@@ -554,63 +566,39 @@ export const VideoModule:
 
       try {
 
-        const newVersion =
-          await service.ai.generateVideo(
-
-            row.videoPrompt.trim(),
-
-            sourceImg.mediaId,
-
-            config.defaultVideoAI
-
-          );
-
-
-        setVideoItems(
-          prev =>
-            prev.map(
-              videoRow =>
-                videoRow.id === id
-                  ? {
-                      ...videoRow,
-
-                      /*
-                        STT luôn khớp Production.
-                      */
-                      stt:
-                        sourceRow.stt,
-
-                      savePath:
-                        sourceRow.savePath ||
-                        videoRow.savePath,
-
-                      videoVersions:
-                        [
-                          ...videoRow.videoVersions,
-
-                          {
-                            ...newVersion,
-
-                            sourceImageId:
-                              sourceImg.id
-                          }
-                        ],
-
-                      currentVideoIndex:
-                        videoRow.videoVersions.length,
-
-                      status:
-                        'COMPLETED',
-
-                      saveConfirmed:
-                        false,
-
-                      error:
-                        ''
-                    }
-                  : videoRow
-            )
+        const { id: jobId } = await service.jobs.enqueue(
+          id,
+          'VIDEO_GEN',
+          {
+            prompt: row.videoPrompt.trim(),
+            firstFrameId: sourceImg.mediaId,
+            model: config.defaultVideoAI,
+            aspectRatio: '9:16',
+            durationSeconds: 8
+          }
         );
+
+        let done = false;
+        while (!done) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const job = await service.jobs.getJob(jobId);
+          if (job.status === 'DONE') {
+            done = true;
+            const updatedRow = await service.storage.loadRow(id);
+            setVideoItems(prev => prev.map(videoRow => videoRow.id === id ? {
+              ...videoRow,
+              stt: sourceRow.stt,
+              savePath: sourceRow.savePath || videoRow.savePath,
+              videoVersions: updatedRow.videoVersions,
+              currentVideoIndex: updatedRow.currentVideoIndex,
+              status: 'COMPLETED',
+              saveConfirmed: false,
+              error: ''
+            } : videoRow));
+          } else if (job.status === 'FAILED' || job.status === 'CANCELLED') {
+            throw new Error(job.error || 'Job failed');
+          }
+        }
 
 
         await writeActivity(

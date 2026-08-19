@@ -155,7 +155,7 @@ def get_ai_config(
 # =========================================================
 
 @router.get(
-    "/api/config/ai-providers"
+    "/ai-providers"
 )
 async def get_ai_providers():
 
@@ -242,7 +242,7 @@ async def get_ai_providers():
 # =========================================================
 
 @router.get(
-    "/api/config/ai-providers/{config_id}/api-key"
+    "/ai-providers/{config_id}/api-key"
 )
 async def reveal_ai_provider_api_key(
     config_id: str
@@ -311,7 +311,7 @@ async def reveal_ai_provider_api_key(
 # =========================================================
 
 @router.post(
-    "/api/config/ai-providers"
+    "/ai-providers"
 )
 async def create_ai_provider(
     data: AIConfigCreate
@@ -421,7 +421,7 @@ async def create_ai_provider(
 # =========================================================
 
 @router.put(
-    "/api/config/ai-providers/{config_id}"
+    "/ai-providers/{config_id}"
 )
 async def update_ai_provider(
     config_id: str,
@@ -582,7 +582,7 @@ async def update_ai_provider(
 # =========================================================
 
 @router.delete(
-    "/api/config/ai-providers/{config_id}"
+    "/ai-providers/{config_id}"
 )
 async def delete_ai_provider(
     config_id: str
@@ -633,7 +633,7 @@ async def delete_ai_provider(
 # =========================================================
 
 @router.post(
-    "/api/config/set-default"
+    "/set-default"
 )
 async def set_default_ai(
     data: SetDefaultRequest

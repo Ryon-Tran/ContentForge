@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     id TEXT PRIMARY KEY,
     row_id TEXT NOT NULL,
     job_type TEXT NOT NULL,
+    payload TEXT,
     status TEXT NOT NULL DEFAULT 'PENDING',
     retry_count INTEGER DEFAULT 0,
     max_retries INTEGER DEFAULT 3,

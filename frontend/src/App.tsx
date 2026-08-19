@@ -37,8 +37,14 @@ import {
 } from './pages/ActivityLogPage';
 
 import {
+  QueueModule
+} from './components/QueueModule';
+
+import {
   ServiceProvider
 } from './context/ServiceContext';
+
+import { FlowService } from './services/FlowService';
 
 import {
   I18nProvider
@@ -586,6 +592,30 @@ export default function App() {
 
 
   // =========================================================
+  // LOAD DATA ON START
+  // =========================================================
+
+  useEffect(() => {
+    // Tải dữ liệu từ DB
+    const initData = async () => {
+      try {
+        const prod = await FlowService.storage.loadRows('production');
+        setProductionItems(prod as WorkflowRow[]);
+
+        const news = await FlowService.storage.loadRows('news');
+        setNewsItems(news as WorkflowRow[]);
+
+        const vid = await FlowService.storage.loadRows('video');
+        setVideoItems(vid as VideoRow[]);
+      } catch (e) {
+        console.error('Lỗi tải dữ liệu', e);
+      }
+    };
+    initData();
+  }, []);
+
+
+  // =========================================================
   // SYNC PRODUCTION -> VIDEO
   // =========================================================
   //
@@ -743,6 +773,20 @@ export default function App() {
                     newsItems.length
                   }
                 />
+
+              )
+            }
+
+
+            {/* =================================================
+                QUEUE
+            ================================================== */}
+
+            {
+              currentView ===
+                'QUEUE' && (
+
+                <QueueModule />
 
               )
             }

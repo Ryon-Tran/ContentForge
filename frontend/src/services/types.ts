@@ -49,6 +49,11 @@ export interface StorageService {
   ): Promise<any[]>;
 
 
+  loadRow(
+    id: string
+  ): Promise<any>;
+
+
   deleteRow(
     id: string,
     table: StorageTable
@@ -95,6 +100,18 @@ export interface ActivityLogService {
 }
 
 
+export interface JobService {
+  enqueue(
+    rowId: string,
+    jobType: string,
+    payload: any
+  ): Promise<{ id: string, status: string }>;
+
+  getJob(
+    jobId: string
+  ): Promise<any>;
+}
+
 export interface IService {
 
   ai: AIService;
@@ -104,5 +121,7 @@ export interface IService {
   files: FileService;
 
   activity: ActivityLogService;
+
+  jobs: JobService;
 
 }

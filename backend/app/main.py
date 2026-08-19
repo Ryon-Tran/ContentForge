@@ -778,6 +778,37 @@ async def load_rows(
     }
 
 
+@app.get(
+    "/api/storage/load-row"
+)
+async def load_row(
+    id: str = Query(...)
+):
+    conn = get_db()
+    try:
+        row = conn.execute(
+            """
+            SELECT data_json
+            FROM workflow_state
+            WHERE id = ?
+            """,
+            (
+                id,
+            )
+        ).fetchone()
+        
+        if not row:
+            raise HTTPException(status_code=404, detail="Row not found")
+            
+        return {
+            "row": json.loads(row["data_json"])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
 @app.post(
     "/api/storage/delete-row"
 )

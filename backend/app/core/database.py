@@ -67,5 +67,13 @@ def init_db():
         """)
         
         conn.commit()
+        
+        try:
+            conn.execute("ALTER TABLE jobs ADD COLUMN payload TEXT;")
+            conn.commit()
+            print("[DB] Added missing 'payload' column to 'jobs' table.")
+        except sqlite3.OperationalError:
+            pass
+            
     finally:
         conn.close()

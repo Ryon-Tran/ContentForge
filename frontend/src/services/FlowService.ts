@@ -271,6 +271,17 @@ export const FlowService:
 
     },
 
+    loadRow:
+      async (
+        id: string
+      ) => {
+        const result = await apiRequest<{ row: any }>(
+          `/api/storage/load-row?id=${encodeURIComponent(id)}`,
+          { method: 'GET' }
+        );
+        return result.row;
+      },
+
 
     deleteRow:
       async (
@@ -352,6 +363,32 @@ export const FlowService:
 
     }
 
+  },
+
+
+  // =========================================================
+  // JOBS
+  // =========================================================
+
+  jobs: {
+    enqueue: async (rowId: string, jobType: string, payload: any) => {
+      return await apiRequest<{ id: string, status: string }>(
+        '/api/jobs',
+        {
+          method: 'POST',
+          body: JSON.stringify({ row_id: rowId, job_type: jobType, payload })
+        }
+      );
+    },
+    
+    getJob: async (jobId: string) => {
+      return await apiRequest<any>(
+        `/api/jobs/${encodeURIComponent(jobId)}`,
+        {
+          method: 'GET'
+        }
+      );
+    }
   },
 
 

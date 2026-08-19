@@ -90,8 +90,8 @@ export const PipelineModule:
   ) => {
 
     setItems(
-      prev =>
-        prev.map(
+      prev => {
+        const next = prev.map(
           row =>
             row.id === id
               ? {
@@ -99,7 +99,13 @@ export const PipelineModule:
                   [field]: value
                 }
               : row
-        )
+        );
+        const updatedRow = next.find(r => r.id === id);
+        if (updatedRow) {
+          service.storage.saveRow(updatedRow, isNews ? 'news' : 'production').catch(console.error);
+        }
+        return next;
+      }
     );
 
   };
@@ -111,8 +117,8 @@ export const PipelineModule:
   ) => {
 
     setItems(
-      prev =>
-        prev.map(
+      prev => {
+        const next = prev.map(
           row =>
             row.id === id
               ? {
@@ -120,7 +126,13 @@ export const PipelineModule:
                   ...patch
                 }
               : row
-        )
+        );
+        const updatedRow = next.find(r => r.id === id);
+        if (updatedRow) {
+          service.storage.saveRow(updatedRow, isNews ? 'news' : 'production').catch(console.error);
+        }
+        return next;
+      }
     );
 
   };
@@ -387,10 +399,14 @@ export const PipelineModule:
 
 
     setItems(
-      prev => [
-        ...prev,
-        newRow
-      ]
+      prev => {
+        const next = [
+          ...prev,
+          newRow
+        ];
+        service.storage.saveRow(newRow, isNews ? 'news' : 'production').catch(console.error);
+        return next;
+      }
     );
 
   };
@@ -1096,47 +1112,35 @@ export const PipelineModule:
             : row.imagePrompt.trim();
 
 
-        const newVersion =
-          await service.ai.generateImage(
-
+        const { id: jobId } = await service.jobs.enqueue(
+          id,
+          'IMAGE_GEN',
+          {
             prompt,
-
-            row.referenceImages.map(
-              image =>
-                image.mediaId
-            ),
-
-            config.defaultImageAI
-
-          );
-
-
-        setItems(
-          prev =>
-            prev.map(
-              item =>
-                item.id === id
-                  ? {
-                      ...item,
-
-                      imageVersions:
-                        [
-                          ...item.imageVersions,
-                          newVersion
-                        ],
-
-                      currentImageIndex:
-                        item.imageVersions.length,
-
-                      status:
-                        'COMPLETED',
-
-                      error:
-                        ''
-                    }
-                  : item
-            )
+            referenceIds: row.referenceImages.map(img => img.mediaId),
+            model: config.defaultImageAI,
+            aspectRatio: '9:16'
+          }
         );
+
+        let done = false;
+        while (!done) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const job = await service.jobs.getJob(jobId);
+          if (job.status === 'DONE') {
+            done = true;
+            const updatedRow = await service.storage.loadRow(id);
+            setItems(prev => prev.map(item => item.id === id ? {
+              ...item,
+              imageVersions: updatedRow.imageVersions,
+              currentImageIndex: updatedRow.currentImageIndex,
+              status: 'COMPLETED',
+              error: ''
+            } : item));
+          } else if (job.status === 'FAILED' || job.status === 'CANCELLED') {
+            throw new Error(job.error || 'Job failed');
+          }
+        }
 
 
         await writeActivity(
@@ -1469,13 +1473,25 @@ BẮT ĐẦU VIẾT CAPTION.
           );
 
 
-        const text =
-          (
-            await service.ai
-              .generateText(
-                prompt
-              )
-          ).trim();
+        const { id: jobId } = await service.jobs.enqueue(
+          id,
+          'CAPTION_GEN',
+          { prompt }
+        );
+
+        let done = false;
+        let text = '';
+        while (!done) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const job = await service.jobs.getJob(jobId);
+          if (job.status === 'DONE') {
+            done = true;
+            const updatedRow = await service.storage.loadRow(id);
+            text = updatedRow.captionResult || '';
+          } else if (job.status === 'FAILED' || job.status === 'CANCELLED') {
+            throw new Error(job.error || 'Job failed');
+          }
+        }
 
 
         if (!text) {

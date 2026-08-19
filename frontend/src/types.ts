@@ -180,7 +180,8 @@ export type ViewType =
   | 'PRODUCTION_VIDEO'
   | 'NEWS_PHOTO'
   | 'ACTIVITY_LOG'
-  | 'CONFIG';
+  | 'CONFIG'
+  | 'QUEUE';
 
 
 export interface AIProviderConfig {
