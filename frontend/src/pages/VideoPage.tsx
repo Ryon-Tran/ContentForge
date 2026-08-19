@@ -14,6 +14,9 @@ import {
   useService
 } from '../context/ServiceContext';
 
+import { PageLayout } from '../layouts/PageLayout';
+import { Button } from '../components/ui/Button';
+
 
 interface Props {
   /*
@@ -1190,109 +1193,22 @@ export const VideoModule:
   // =========================================================
 
   return (
-
-    <div className="page-wrap">
-
-
-      {/* HEADER */}
-
-      <div className="page-header">
-
-        <div
-          className="
-            flex
-            items-center
-            gap-4
-          "
-        >
-
-          <div>
-
-            <h2 className="page-title">
-              SẢN XUẤT &gt; VIDEO
-            </h2>
-
-
-            <div
-              className="
-                text-[10px]
-                mt-1
-              "
-
-              style={{
-                color:
-                  'var(--text-muted)'
-              }}
-            >
-              Chỉ nhận ảnh từ SẢN XUẤT. Video phải xem và xác nhận trước khi lưu.
-            </div>
-
-          </div>
-
-
-          <button
-            type="button"
-
-            onClick={
-              runAll
-            }
-
-            className="
-              btn-action
-              btn-primary
-            "
-          >
-
-            <span
-              className="
-                material-symbols-outlined
-                text-[17px]
-              "
-            >
-              movie_edit
-            </span>
-
-            CHẠY TẤT CẢ
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-      {/* TABLE */}
-
-      <div
-        className="
-          flex-1
-          min-h-0
-          p-4
-        "
-      >
-
-        <div
-          className="
-            soft-panel
-            h-full
-          "
-        >
-
-          <div
-            className="
-              h-full
-              overflow-auto
-              dark-scrollbar
-            "
-          >
+    <PageLayout
+      title="SẢN XUẤT > VIDEO"
+      description="Chỉ nhận ảnh từ SẢN XUẤT. Video phải xem và xác nhận trước khi lưu."
+      actions={
+        <Button variant="primary" onClick={runAll} icon="movie_edit">
+          CHẠY TẤT CẢ
+        </Button>
+      }
+    >
+      <div className="flex-1 min-h-0">
+        <div className="h-full flex flex-col min-h-0">
+          <div className="h-full overflow-auto dark-scrollbar p-0">
 
             <table
               className="table-fixed"
-
-              style={{
-                minWidth:
-                  '1900px'
-              }}
+              style={{ minWidth: '1900px' }}
             >
 
               <thead>
@@ -2241,13 +2157,8 @@ export const VideoModule:
             </table>
 
           </div>
-
         </div>
-
       </div>
-
-    </div>
-
+    </PageLayout>
   );
-
 };

@@ -2,12 +2,10 @@ import React from 'react';
 
 interface Props {
   productionCount: number;
-  newsCount: number;
 }
 
 export const Dashboard: React.FC<Props> = ({
-  productionCount,
-  newsCount
+  productionCount
 }) => {
   return (
     <div className="page-wrap overflow-auto">
@@ -65,39 +63,6 @@ export const Dashboard: React.FC<Props> = ({
 
             </div>
 
-            {/* NEWS */}
-            <div className="soft-card group hover:border-purple-300 hover:shadow-md transition-all">
-
-              <div className="flex items-center justify-between">
-
-                <div>
-
-                  <div className="text-[12px] font-black text-slate-500 uppercase tracking-[0.12em]">
-                    Job Làm Báo
-                  </div>
-
-                  <div className="text-5xl font-black text-slate-900 mt-3">
-                    {newsCount}
-                  </div>
-
-                  <div className="text-[11px] text-slate-400 mt-2">
-                    Ảnh và caption thuộc pipeline Làm Báo
-                  </div>
-
-                </div>
-
-                <div className="w-16 h-16 bg-purple-50 border border-purple-100 rounded-2xl flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-
-                  <span className="material-symbols-outlined text-purple-600 text-[34px]">
-                    newspaper
-                  </span>
-
-                </div>
-
-              </div>
-
-            </div>
-
           </div>
 
           {/* INFO */}
@@ -120,7 +85,6 @@ export const Dashboard: React.FC<Props> = ({
                 </div>
 
                 <div className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                  SẢN XUẤT và LÀM BÁO được quản lý độc lập.
                   VIDEO chỉ nhận dữ liệu ảnh từ pipeline SẢN XUẤT.
                 </div>
 

@@ -16,3 +16,4 @@ backend/factory_ai.db
 # Python cache
 __pycache__/
 *.pyc
+frontend/dist/

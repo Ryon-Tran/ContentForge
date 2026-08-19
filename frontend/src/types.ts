@@ -14,7 +14,6 @@ export type AIProviderType =
 
 export type ActivityModule =
   | 'PRODUCTION'
-  | 'NEWS'
   | 'VIDEO'
   | 'SYSTEM';
 
@@ -109,7 +108,8 @@ export interface WorkflowRow {
 
 export interface VideoRow {
   // Map trực tiếp với WorkflowRow thuộc SẢN XUẤT.
-  // NEWS không được map vào Video.
+  // Chỉ PRODUCTION mới chạy Video.
+  sourceModule: 'PRODUCTION';
   id: string;
 
   stt: string;
@@ -137,7 +137,7 @@ export interface VideoRow {
 export interface ActivityLog {
   id: string;
 
-  // SẢN XUẤT / LÀM BÁO / VIDEO / HỆ THỐNG
+  // SẢN XUẤT / VIDEO / HỆ THỐNG
   module: ActivityModule;
 
   // Hành động đã thực hiện
@@ -178,7 +178,6 @@ export type ViewType =
   | 'DASHBOARD'
   | 'PRODUCTION_PHOTO'
   | 'PRODUCTION_VIDEO'
-  | 'NEWS_PHOTO'
   | 'ACTIVITY_LOG'
   | 'CONFIG'
   | 'QUEUE';

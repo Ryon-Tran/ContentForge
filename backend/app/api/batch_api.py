@@ -3,24 +3,14 @@ import uuid
 import csv
 import io
 import json
+import asyncio
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.core.database import get_db
 
 router = APIRouter(prefix="/api/batch", tags=["Batch"])
 
-@router.post("/import")
-async def import_csv(file: UploadFile = File(...)):
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="Only CSV files are allowed.")
-        
-    content = await file.read()
-    try:
-        text = content.decode('utf-8-sig') # Handle UTF-8 with BOM commonly exported by Excel
-    except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid file encoding. Please upload a UTF-8 CSV.")
-        
+def _process_import(text: str) -> int:
     reader = csv.DictReader(io.StringIO(text))
-    
     conn = get_db()
     try:
         now = int(time.time() * 1000)
@@ -56,11 +46,50 @@ async def import_csv(file: UploadFile = File(...)):
                 VALUES (?, ?, ?, ?)
             """, ("production", row_id, json.dumps(row_data), now))
             
+            payload_json = "{}"
+            
+            if row_data["imagePrompt"]:
+                job_id = str(uuid.uuid4())
+                conn.execute("""
+                    INSERT INTO jobs (id, row_id, job_type, payload, status, retry_count, max_retries, error, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, 'PENDING', 0, 3, NULL, ?, ?)
+                """, (job_id, row_id, "IMAGE_GEN", payload_json, now, now))
+                
+            if row_data["captionInstruction"]:
+                job_id = str(uuid.uuid4())
+                conn.execute("""
+                    INSERT INTO jobs (id, row_id, job_type, payload, status, retry_count, max_retries, error, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, 'PENDING', 0, 3, NULL, ?, ?)
+                """, (job_id, row_id, "CAPTION_GEN", payload_json, now, now))
+                
+            if row_data["videoPrompt"]:
+                job_id = str(uuid.uuid4())
+                conn.execute("""
+                    INSERT INTO jobs (id, row_id, job_type, payload, status, retry_count, max_retries, error, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, 'PENDING', 0, 3, NULL, ?, ?)
+                """, (job_id, row_id, "VIDEO_GEN", payload_json, now, now))
+            
             imported_count += 1
             
         conn.commit()
+        return imported_count
+    finally:
+        conn.close()
+
+@router.post("/import")
+async def import_csv(file: UploadFile = File(...)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed.")
+        
+    content = await file.read()
+    try:
+        text = content.decode('utf-8-sig')
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid file encoding. Please upload a UTF-8 CSV.")
+        
+    try:
+        imported_count = await asyncio.to_thread(_process_import, text)
         return {"status": "ok", "imported": imported_count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        conn.close()
+

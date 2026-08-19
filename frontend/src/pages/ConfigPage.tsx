@@ -9,6 +9,8 @@ import {
   AIProviderType
 } from '../types';
 
+import { PageLayout } from '../layouts/PageLayout';
+
 import {
   useI18n
 } from '../i18n/I18nContext';
@@ -1365,61 +1367,11 @@ export const ConfigModule:
   // =========================================================
 
   return (
-
-    <div
-      className="
-        page-wrap
-        overflow-y-auto
-      "
+    <PageLayout
+      title={t('config.title', 'CẤU HÌNH AI')}
+      description="Quản lý AI Provider, Model, Base URL và API Key."
     >
-
-      {/* =====================================================
-          HEADER
-      ====================================================== */}
-
-      <div className="page-header">
-
-        <div>
-
-          <div className="page-title">
-            {
-              t(
-                'config.title',
-                'CẤU HÌNH AI'
-              )
-            }
-          </div>
-
-
-          <div
-            className="
-              text-[12px]
-              mt-1
-            "
-
-            style={{
-              color:
-                'var(--text-muted)'
-            }}
-          >
-            Quản lý AI Provider, Model, Base URL và API Key.
-          </div>
-
-        </div>
-
-      </div>
-
-
-      {/* =====================================================
-          CONTENT
-      ====================================================== */}
-
-      <div
-        className="
-          p-6
-          space-y-6
-        "
-      >
+      <div className="p-6 space-y-6">
 
         {/* ===================================================
             FORM
@@ -1602,13 +1554,15 @@ export const ConfigModule:
                 }
 
                 onChange={
-                  e =>
-                    updateForm(
-                      'type',
-
-                      e.currentTarget
-                        .value as AIProviderType
-                    )
+                  e => {
+                    const newType = e.currentTarget.value as AIProviderType;
+                    setForm(prev => ({
+                      ...prev,
+                      type: newType,
+                      provider: '',
+                      model: ''
+                    }));
+                  }
                 }
 
                 className="form-select"
@@ -1660,25 +1614,33 @@ export const ConfigModule:
               </label>
 
 
-              <input
-                type="text"
-
-                value={
-                  form.provider
-                }
-
-                onChange={
-                  e =>
-                    updateForm(
-                      'provider',
-                      e.currentTarget.value
-                    )
-                }
-
-                className="form-input"
-
-                placeholder="openai / google / xai..."
-              />
+              <select
+                value={form.provider}
+                onChange={e => updateForm('provider', e.currentTarget.value)}
+                className="form-select"
+              >
+                <option value="">-- Chọn Provider --</option>
+                {form.type === 'TEXT' && (
+                  <>
+                    <option value="google">Google (Gemini)</option>
+                    <option value="openai">OpenAI (ChatGPT)</option>
+                    <option value="openrouter">OpenRouter / Khác</option>
+                  </>
+                )}
+                {form.type === 'IMAGE' && (
+                  <>
+                    <option value="google">Google (Imagen/Gemini)</option>
+                    <option value="openai">OpenAI (DALL-E)</option>
+                    <option value="xai">xAI (Grok)</option>
+                  </>
+                )}
+                {form.type === 'VIDEO' && (
+                  <>
+                    <option value="google">Google (Veo)</option>
+                    <option value="xai">xAI (Grok)</option>
+                  </>
+                )}
+              </select>
 
             </div>
 
@@ -2805,9 +2767,6 @@ export const ConfigModule:
         }
 
       </div>
-
-    </div>
-
+    </PageLayout>
   );
-
 };

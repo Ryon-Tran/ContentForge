@@ -7,6 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from app.core.database import get_db
 from app.models.schemas import AIConfigCreate, AIConfigUpdate, SetDefaultRequest
+from app.core.security import encrypt_api_key, decrypt_api_key
 
 router = APIRouter(prefix="/api/config", tags=["Config"])
 
@@ -107,10 +108,9 @@ def get_ai_config(
 
 
             if row:
-
-                return dict(
-                    row
-                )
+                result = dict(row)
+                result["api_key"] = decrypt_api_key(result["api_key"] or "")
+                return result
 
 
         row = conn.execute(
@@ -141,9 +141,9 @@ def get_ai_config(
             )
 
 
-        return dict(
-            row
-        )
+        result = dict(row)
+        result["api_key"] = decrypt_api_key(result["api_key"] or "")
+        return result
 
     finally:
 
@@ -157,7 +157,7 @@ def get_ai_config(
 @router.get(
     "/ai-providers"
 )
-async def get_ai_providers():
+def get_ai_providers():
 
     conn = get_db()
 
@@ -244,7 +244,7 @@ async def get_ai_providers():
 @router.get(
     "/ai-providers/{config_id}/api-key"
 )
-async def reveal_ai_provider_api_key(
+def reveal_ai_provider_api_key(
     config_id: str
 ):
 
@@ -277,7 +277,7 @@ async def reveal_ai_provider_api_key(
             )
 
 
-        api_key = (
+        api_key = decrypt_api_key(
             row["api_key"]
             or ""
         )
@@ -313,7 +313,7 @@ async def reveal_ai_provider_api_key(
 @router.post(
     "/ai-providers"
 )
-async def create_ai_provider(
+def create_ai_provider(
     data: AIConfigCreate
 ):
 
@@ -385,7 +385,7 @@ async def create_ai_provider(
                 .strip()
                 .rstrip("/"),
 
-                data.apiKey.strip(),
+                encrypt_api_key(data.apiKey.strip()),
 
                 1
                 if data.isActive
@@ -423,7 +423,7 @@ async def create_ai_provider(
 @router.put(
     "/ai-providers/{config_id}"
 )
-async def update_ai_provider(
+def update_ai_provider(
     config_id: str,
     data: AIConfigUpdate
 ):
@@ -531,7 +531,7 @@ async def update_ai_provider(
                     "base_url"
                 ],
 
-                data.apiKey.strip()
+                encrypt_api_key(data.apiKey.strip())
                 if data.apiKey
                 else current[
                     "api_key"
@@ -584,7 +584,7 @@ async def update_ai_provider(
 @router.delete(
     "/ai-providers/{config_id}"
 )
-async def delete_ai_provider(
+def delete_ai_provider(
     config_id: str
 ):
 
@@ -635,7 +635,7 @@ async def delete_ai_provider(
 @router.post(
     "/set-default"
 )
-async def set_default_ai(
+def set_default_ai(
     data: SetDefaultRequest
 ):
 

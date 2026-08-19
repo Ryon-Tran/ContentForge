@@ -1046,12 +1046,13 @@ class GenerateVideoRequest(
     resolution: str = "720p"
 
 
-def resolve_selected_config(
+async def resolve_selected_config(
     ai_type: str,
     requested_model: Optional[str]
 ):
 
-    return get_ai_config(
+    return await asyncio.to_thread(
+        get_ai_config,
         ai_type,
         requested_model
     )
@@ -1569,7 +1570,7 @@ async def generate_text(
     data: GenerateTextRequest
 ):
 
-    cfg = resolve_selected_config(
+    cfg = await resolve_selected_config(
         "TEXT",
         data.model
     )
@@ -2237,7 +2238,7 @@ async def generate_image(
     data: GenerateImageRequest
 ):
 
-    cfg = resolve_selected_config(
+    cfg = await resolve_selected_config(
         "IMAGE",
         data.model
     )
@@ -2966,7 +2967,7 @@ async def generate_video(
     data: GenerateVideoRequest
 ):
 
-    cfg = resolve_selected_config(
+    cfg = await resolve_selected_config(
         "VIDEO",
         data.model
     )

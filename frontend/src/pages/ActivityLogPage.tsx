@@ -10,6 +10,9 @@ import {
   ActivityType
 } from '../types';
 
+import { PageLayout } from '../layouts/PageLayout';
+import { Button } from '../components/ui/Button';
+
 
 interface Props {
   items: ActivityLog[];
@@ -517,99 +520,20 @@ export const ActivityLogModule:
   // =========================================================
 
   return (
-
-    <div className="page-wrap">
-
-      {/* =====================================================
-          HEADER
-      ====================================================== */}
-
-      <div className="page-header">
-
-        <div>
-
-          <div className="page-title">
-            LỊCH SỬ HOẠT ĐỘNG
-          </div>
-
-
-          <div
-            className="
-              text-[11px]
-              mt-1
-            "
-            style={{
-              color:
-                'var(--text-muted)'
-            }}
-          >
-            Theo dõi hoạt động tạo ảnh, caption, video, lưu file và lỗi hệ thống.
-          </div>
-
-        </div>
-
-
-        <div
-          className="
-            flex
-            items-center
-            gap-2
-          "
-        >
-
-          <div
-            className="
-              text-[11px]
-              font-semibold
-              px-3
-              py-2
-              rounded-lg
-              border
-            "
-            style={{
-              background:
-                'var(--bg-card)',
-
-              borderColor:
-                'var(--border)',
-
-              color:
-                'var(--text-secondary)'
-            }}
-          >
+    <PageLayout
+      title="LỊCH SỬ HOẠT ĐỘNG"
+      description="Theo dõi hoạt động tạo ảnh, caption, video, lưu file và lỗi hệ thống."
+      actions={
+        <>
+          <div className="text-[11px] font-semibold px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600">
             {items.length} hoạt động
           </div>
-
-
-          <button
-            type="button"
-
-            onClick={
-              clearAll
-            }
-
-            className="
-              btn-action
-              btn-danger
-            "
-          >
-
-            <span
-              className="
-                material-symbols-outlined
-                text-[17px]
-              "
-            >
-              delete_sweep
-            </span>
-
-            XÓA TẤT CẢ
-
-          </button>
-
-        </div>
-
-      </div>
+          <Button variant="danger" onClick={clearAll} icon="delete_sweep">
+            XOÁ TẤT CẢ
+          </Button>
+        </>
+      }
+    >
 
 
       {/* =====================================================
@@ -729,9 +653,7 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
                 SẢN XUẤT
               </option>
 
-              <option value="NEWS">
-                LÀM BÁO
-              </option>
+
 
               <option value="VIDEO">
                 VIDEO
@@ -816,35 +738,13 @@ Tìm theo STT, nhân vật, nội dung, đường dẫn, lỗi...
           TABLE
       ====================================================== */}
 
-      <div
-        className="
-          flex-1
-          min-h-0
-          p-4
-        "
-      >
-
-        <div
-          className="
-            soft-panel
-            h-full
-          "
-        >
-
-          <div
-            className="
-              h-full
-              overflow-auto
-              dark-scrollbar
-            "
-          >
+      <div className="flex-1 min-h-0">
+        <div className="h-full flex flex-col min-h-0">
+          <div className="h-full overflow-auto dark-scrollbar p-0">
 
             <table
               className="table-fixed"
-              style={{
-                minWidth:
-                  '1700px'
-              }}
+              style={{ minWidth: '1700px' }}
             >
 
               <thead>
@@ -1513,13 +1413,8 @@ Ghi chú...
             </table>
 
           </div>
-
         </div>
-
       </div>
-
-    </div>
-
+    </PageLayout>
   );
-
 };

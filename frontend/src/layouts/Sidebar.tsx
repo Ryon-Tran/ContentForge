@@ -333,31 +333,6 @@ export const Sidebar:
 
 
         {/* =================================================
-            NEWS / LÀM BÁO
-        ================================================== */}
-
-        <SectionTitle>
-          {t(
-            'sidebar.news',
-            'Làm Báo'
-          )}
-        </SectionTitle>
-
-
-        <NavItem
-          id="NEWS_PHOTO"
-          icon="article"
-
-          label={t(
-            'sidebar.newsImageCaption',
-            'Ảnh & Bài Viết'
-          )}
-
-          indent
-        />
-
-
-        {/* =================================================
             SYSTEM
         ================================================== */}
 

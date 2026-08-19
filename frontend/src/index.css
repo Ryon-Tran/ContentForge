@@ -314,7 +314,7 @@ input:focus,
 select:focus {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--input-bg);
 }
 
 textarea::placeholder,

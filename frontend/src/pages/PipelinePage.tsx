@@ -15,6 +15,10 @@ import {
   useService
 } from '../context/ServiceContext';
 
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { Button } from '../components/ui/Button';
+import { PageLayout } from '../layouts/PageLayout';
+
 
 interface Props {
   title: string;
@@ -1910,6 +1914,14 @@ BẮT ĐẦU VIẾT CAPTION.
 
   };
 
+  const removeSelectedRows = () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xoá các dòng đã chọn?')) return;
+
+    const remaining = items.filter(row => !selectedIds.has(row.id));
+    setItems(remaining);
+    setSelectedIds(new Set());
+  };
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -1936,58 +1948,11 @@ BẮT ĐẦU VIẾT CAPTION.
   // =========================================================
 
   return (
-
-    <div className="page-wrap">
-
-      {/* HEADER */}
-
-      <div className="page-header">
-
-        <div
-          className="
-            flex
-            items-center
-            gap-4
-          "
-        >
-
-          <div>
-
-            <h2
-              className={`
-                text-[12px]
-                font-bold
-                uppercase
-                tracking-[0.14em]
-
-                ${
-                  isNews
-                    ? 'text-purple-700'
-                    : 'text-blue-700'
-                }
-              `}
-            >
-              {title}
-            </h2>
-
-
-            <p
-              className="
-                text-[10px]
-                mt-1
-              "
-
-              style={{
-                color:
-                  'var(--text-muted)'
-              }}
-            >
-              {items.length} hàng dữ liệu
-            </p>
-
-          </div>
-
-
+    <PageLayout
+      title={title}
+      description={`${items.length} hàng dữ liệu`}
+      actions={
+        <>
           <input
             type="file"
             accept=".csv"
@@ -1995,117 +1960,27 @@ BẮT ĐẦU VIẾT CAPTION.
             onChange={handleImportCSV}
             style={{ display: 'none' }}
           />
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="
-              btn-action
-              btn-secondary
-            "
-            style={{
-              padding: '6px 12px',
-              fontSize: '11px',
-              fontWeight: 600,
-              gap: '6px'
-            }}
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              upload_file
-            </span>
+          <Button variant="secondary" onClick={() => fileInputRef.current?.click()} icon="upload_file">
             Nhập CSV
-          </button>
-
-          <button
-            type="button"
-
-            onClick={
-              addRow
-            }
-
-            className="
-              btn-action
-              btn-secondary
-            "
-          >
-
-            <span
-              className="
-                material-symbols-outlined
-                text-[17px]
-              "
-            >
-              add
-            </span>
-
+          </Button>
+          <Button variant="secondary" onClick={addRow} icon="add">
             THÊM HÀNG
-
-          </button>
-
-
-          <button
-            type="button"
-
-            onClick={
-              runAll
-            }
-
-            className="
-              btn-action
-              btn-primary
-            "
-          >
-
-            <span
-              className="
-                material-symbols-outlined
-                text-[17px]
-              "
-            >
-              play_arrow
-            </span>
-
+          </Button>
+          <Button variant="danger" onClick={removeSelectedRows} icon="delete">
+            XOÁ ĐÃ CHỌN
+          </Button>
+          <Button variant="primary" onClick={runAll} icon="play_arrow">
             CHẠY TẤT CẢ
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-      {/* TABLE */}
-
-      <div
-        className="
-          flex-1
-          min-h-0
-          p-4
-        "
-      >
-
-        <div
-          className="
-            soft-panel
-            h-full
-          "
-        >
-
-          <div
-            className="
-              h-full
-              overflow-auto
-              dark-scrollbar
-            "
-          >
+          </Button>
+        </>
+      }
+    >
+      <div className="flex-1 min-h-0">
+        <div className="h-full flex flex-col min-h-0">
+          <div className="h-full overflow-auto dark-scrollbar p-0">
 
             <table
               className="table-fixed"
-
-              style={{
-                minWidth:
-                  '2520px'
-              }}
             >
 
               <thead>
@@ -3071,93 +2946,22 @@ BẮT ĐẦU VIẾT CAPTION.
                           <td className="sheet-cell">
 
                             {
-                              row.status ===
-                                'RUNNING' && (
-
-                                <div
-                                  className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                    text-blue-600
-                                    text-[10px]
-                                    font-bold
-                                  "
-                                >
-
-                                  <div
-                                    className="
-                                      w-4
-                                      h-4
-                                      border-2
-                                      border-blue-600
-                                      border-t-transparent
-                                      rounded-full
-                                      animate-spin
-                                    "
-                                  />
-
-                                  ĐANG CHẠY
-
-                                </div>
-
+                              row.status === 'RUNNING' && (
+                                <StatusBadge status="RUNNING" />
                               )
                             }
-
 
                             {
                               row.error && (
-
-                                <div
-                                  className="
-                                    bg-red-50
-                                    border
-                                    border-red-200
-                                    text-red-700
-                                    rounded-lg
-                                    p-2
-                                    text-[10px]
-                                    leading-relaxed
-                                    break-words
-                                  "
-                                >
+                                <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-2 text-[10px] leading-relaxed break-words mt-2">
                                   {row.error}
                                 </div>
-
                               )
                             }
 
-
                             {
-                              !row.error &&
-
-                              row.status ===
-                                'COMPLETED' && (
-
-                                <div
-                                  className="
-                                    inline-flex
-                                    items-center
-                                    gap-1
-                                    text-green-600
-                                    text-[10px]
-                                    font-bold
-                                  "
-                                >
-
-                                  <span
-                                    className="
-                                      material-symbols-outlined
-                                      text-[18px]
-                                    "
-                                  >
-                                    check_circle
-                                  </span>
-
-                                  HOÀN THÀNH
-
-                                </div>
-
+                              !row.error && row.status === 'COMPLETED' && (
+                                <StatusBadge status="DONE" />
                               )
                             }
 
@@ -3176,13 +2980,8 @@ BẮT ĐẦU VIẾT CAPTION.
             </table>
 
           </div>
-
         </div>
-
       </div>
-
-    </div>
-
+    </PageLayout>
   );
-
 };

@@ -127,17 +127,7 @@ export default function App() {
     );
 
 
-  // =========================================================
-  // NEWS / LÀM BÁO DATA
-  // =========================================================
 
-  const [
-    newsItems,
-    setNewsItems
-  ] =
-    useState<WorkflowRow[]>(
-      []
-    );
 
 
   // =========================================================
@@ -471,10 +461,7 @@ export default function App() {
           'PRODUCTION_PHOTO' ||
 
         currentView ===
-          'PRODUCTION_VIDEO' ||
-
-        currentView ===
-          'NEWS_PHOTO'
+          'PRODUCTION_VIDEO'
       ) {
 
         loadDefaultAI();
@@ -602,8 +589,7 @@ export default function App() {
         const prod = await FlowService.storage.loadRows('production');
         setProductionItems(prod as WorkflowRow[]);
 
-        const news = await FlowService.storage.loadRows('news');
-        setNewsItems(news as WorkflowRow[]);
+
 
         const vid = await FlowService.storage.loadRows('video');
         setVideoItems(vid as VideoRow[]);
@@ -621,7 +607,7 @@ export default function App() {
   //
   // CHỈ productionItems được đưa sang VIDEO.
   //
-  // newsItems / LÀM BÁO độc lập hoàn toàn.
+  // `productionItems` và `videoItems` riêng biệt.
   //
   // =========================================================
 
@@ -768,10 +754,6 @@ export default function App() {
                   productionCount={
                     productionItems.length
                   }
-
-                  newsCount={
-                    newsItems.length
-                  }
                 />
 
               )
@@ -850,34 +832,7 @@ export default function App() {
             }
 
 
-            {/* =================================================
-                NEWS / LÀM BÁO
-            ================================================== */}
 
-            {
-              currentView ===
-                'NEWS_PHOTO' && (
-
-                <PipelinePage
-                  title="LÀM BÁO > ẢNH & CAPTION"
-
-                  items={
-                    newsItems
-                  }
-
-                  setItems={
-                    setNewsItems
-                  }
-
-                  config={
-                    config
-                  }
-
-                  isNews
-                />
-
-              )
-            }
 
 
             {/* =================================================
