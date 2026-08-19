@@ -14,27 +14,27 @@ import {
 
 import {
   Sidebar
-} from './components/Sidebar';
+} from './layouts/Sidebar';
 
 import {
-  PipelineModule
-} from './components/PipelineModule';
+  PipelineModule as PipelinePage
+} from './pages/PipelinePage';
 
 import {
-  VideoModule
-} from './components/VideoModule';
+  VideoModule as VideoPage
+} from './pages/VideoPage';
 
 import {
-  ConfigModule
-} from './components/ConfigModule';
+  ConfigModule as ConfigPage
+} from './pages/ConfigPage';
 
 import {
   Dashboard
-} from './components/Dashboard';
+} from './pages/Dashboard';
 
 import {
-  ActivityLogModule
-} from './components/ActivityLogModule';
+  ActivityLogModule as ActivityLogPage
+} from './pages/ActivityLogPage';
 
 import {
   ServiceProvider
@@ -756,7 +756,7 @@ export default function App() {
               currentView ===
                 'PRODUCTION_PHOTO' && (
 
-                <PipelineModule
+                <PipelinePage
                   title="SẢN XUẤT > ẢNH & CAPTION"
 
                   items={
@@ -784,7 +784,7 @@ export default function App() {
               currentView ===
                 'PRODUCTION_VIDEO' && (
 
-                <VideoModule
+                <VideoPage
                   sourceItems={
                     productionItems
                   }
@@ -814,7 +814,7 @@ export default function App() {
               currentView ===
                 'NEWS_PHOTO' && (
 
-                <PipelineModule
+                <PipelinePage
                   title="LÀM BÁO > ẢNH & CAPTION"
 
                   items={
@@ -844,7 +844,7 @@ export default function App() {
               currentView ===
                 'ACTIVITY_LOG' && (
 
-                <ActivityLogModule
+                <ActivityLogPage
                   items={
                     activityItems
                   }
@@ -866,7 +866,7 @@ export default function App() {
               currentView ===
                 'CONFIG' && (
 
-                <ConfigModule />
+                <ConfigPage />
 
               )
             }
