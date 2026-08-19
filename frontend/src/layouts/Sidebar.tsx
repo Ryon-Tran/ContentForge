@@ -349,8 +349,8 @@ export const Sidebar:
           icon="article"
 
           label={t(
-            'sidebar.imageCaption',
-            'Ảnh & Caption'
+            'sidebar.newsImageCaption',
+            'Ảnh & Bài Viết'
           )}
 
           indent

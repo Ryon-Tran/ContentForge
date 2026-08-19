@@ -59,6 +59,10 @@ export interface StorageService {
     table: StorageTable
   ): Promise<void>;
 
+  importCSV(
+    file: File
+  ): Promise<{ status: string, imported: number }>;
+
 }
 
 

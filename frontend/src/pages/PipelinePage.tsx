@@ -1911,6 +1911,26 @@ BẮT ĐẦU VIẾT CAPTION.
   };
 
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      await service.storage.importCSV(file);
+      const rows = await service.storage.loadRows(isNews ? 'news' : 'production');
+      setItems(rows as WorkflowRow[]);
+    } catch (err: any) {
+      alert(`Lỗi nhập CSV: ${err.message}`);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+
   // =========================================================
   // UI
   // =========================================================
@@ -1967,6 +1987,34 @@ BẮT ĐẦU VIẾT CAPTION.
 
           </div>
 
+
+          <input
+            type="file"
+            accept=".csv"
+            ref={fileInputRef}
+            onChange={handleImportCSV}
+            style={{ display: 'none' }}
+          />
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="
+              btn-action
+              btn-secondary
+            "
+            style={{
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontWeight: 600,
+              gap: '6px'
+            }}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              upload_file
+            </span>
+            Nhập CSV
+          </button>
 
           <button
             type="button"

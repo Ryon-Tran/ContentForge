@@ -41,6 +41,9 @@ async def import_csv(file: UploadFile = File(...)):
                 "captionSample": "",
                 "captionPreset": "",
                 "captionResult": "",
+                "videoPrompt": row.get("videoPrompt", ""),
+                "videoVersions": [],
+                "currentVideoIndex": -1,
                 "savePath": "",
                 "isDone": False,
                 "status": "IDLE",
@@ -51,7 +54,7 @@ async def import_csv(file: UploadFile = File(...)):
             conn.execute("""
                 INSERT INTO workflow_state (table_name, id, data_json, updated_at)
                 VALUES (?, ?, ?, ?)
-            """, ("production_rows", row_id, json.dumps(row_data), now))
+            """, ("production", row_id, json.dumps(row_data), now))
             
             imported_count += 1
             

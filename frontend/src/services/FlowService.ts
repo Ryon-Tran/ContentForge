@@ -307,6 +307,20 @@ export const FlowService:
         }
       );
 
+    },
+
+    importCSV: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch(`${API_BASE}/api/batch/import`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`CSV Import failed: ${response.status} ${text}`);
+      }
+      return response.json();
     }
 
   },

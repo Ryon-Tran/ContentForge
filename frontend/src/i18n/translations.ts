@@ -91,6 +91,9 @@ export const translations = {
       imageCaption:
         'Ảnh & Caption',
 
+      newsImageCaption:
+        'Ảnh & Bài Viết',
+
       videoPipeline:
         'Video',
 
@@ -126,7 +129,7 @@ export const translations = {
 
     news: {
       title:
-        'LÀM BÁO > ẢNH & CAPTION'
+        'LÀM BÁO > ẢNH & BÀI VIẾT'
     },
 
 
@@ -649,6 +652,9 @@ export const translations = {
       imageCaption:
         'Image & Caption',
 
+      newsImageCaption:
+        'Image & Article',
+
       videoPipeline:
         'Video',
 
@@ -683,7 +689,7 @@ export const translations = {
 
     news: {
       title:
-        'NEWS PRODUCTION > IMAGE & CAPTION'
+        'NEWS > IMAGE & ARTICLE'
     },
 
 
