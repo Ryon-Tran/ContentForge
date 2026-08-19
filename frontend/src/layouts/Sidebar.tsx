@@ -83,11 +83,12 @@ export const Sidebar:
           text-left
           border
           transition-all
-
+          duration-300
+          
           ${
             active
-              ? 'bg-blue-50 border-blue-200 shadow-sm'
-              : 'border-transparent'
+              ? 'bg-[var(--primary-soft)] border-[var(--primary)] text-[var(--primary)] shadow-[0_0_15px_var(--primary-soft)]'
+              : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-soft)] hover:text-[var(--text-main)]'
           }
 
           ${
@@ -96,32 +97,15 @@ export const Sidebar:
               : ''
           }
         `}
-
-        style={{
-          background:
-            active
-              ? undefined
-              : 'transparent',
-
-          color:
-            active
-              ? '#2563eb'
-              : 'var(--text-secondary)'
-        }}
       >
 
         <span
-          className="
+          className={`
             material-symbols-outlined
             text-[19px]
-          "
-
-          style={{
-            color:
-              active
-                ? '#2563eb'
-                : 'var(--text-muted)'
-          }}
+            transition-colors
+            ${active ? 'text-[var(--primary)] drop-shadow-[0_0_8px_var(--primary-soft)]' : 'text-[var(--text-muted)]'}
+          `}
         >
           {icon}
         </span>
@@ -198,15 +182,9 @@ export const Sidebar:
         shrink-0
         z-50
         border-r
+        border-[var(--border)]
+        bg-[var(--bg-app)]
       "
-
-      style={{
-        background:
-          'var(--bg-card)',
-
-        borderColor:
-          'var(--border)'
-      }}
     >
 
 
@@ -222,24 +200,20 @@ export const Sidebar:
           items-center
           gap-3
           border-b
+          border-[var(--border)]
         "
-
-        style={{
-          borderColor:
-            'var(--border)'
-        }}
       >
 
         <div
           className="
             w-10
             h-10
-            bg-blue-600
-            rounded-xl
+            rounded-[12px]
             flex
             items-center
             justify-center
-            shadow-sm
+            shadow-[0_0_15px_var(--primary-soft)]
+            bg-[var(--primary-gradient)]
           "
         >
 
@@ -427,16 +401,9 @@ export const Sidebar:
         className="
           p-3
           border-t
+          border-[var(--border)]
           space-y-2
         "
-
-        style={{
-          background:
-            'var(--bg-soft)',
-
-          borderColor:
-            'var(--border)'
-        }}
       >
 
 
@@ -451,21 +418,13 @@ export const Sidebar:
             px-3
             rounded-xl
             border
+            border-[var(--border)]
             flex
             items-center
             gap-2
+            bg-[var(--bg-card)]
+            text-[var(--text-main)]
           "
-
-          style={{
-            background:
-              'var(--bg-card)',
-
-            borderColor:
-              'var(--border)',
-
-            color:
-              'var(--text-main)'
-          }}
         >
 
           <span
@@ -552,22 +511,16 @@ export const Sidebar:
             px-3
             rounded-xl
             border
+            border-[var(--border)]
             flex
             items-center
             gap-3
             text-left
+            bg-[var(--bg-card)]
+            text-[var(--text-main)]
+            hover:bg-[var(--bg-soft)]
+            transition-colors
           "
-
-          style={{
-            background:
-              'var(--bg-card)',
-
-            borderColor:
-              'var(--border)',
-
-            color:
-              'var(--text-main)'
-          }}
         >
 
           <span
