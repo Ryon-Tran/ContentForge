@@ -212,9 +212,6 @@ export const ActivityLogModule:
       case 'PRODUCTION':
         return 'SẢN XUẤT';
 
-      case 'NEWS':
-        return 'LÀM BÁO';
-
       case 'VIDEO':
         return 'VIDEO';
 

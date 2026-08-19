@@ -77,10 +77,7 @@ export const PipelineModule:
   // MODULE
   // =========================================================
 
-  const activityModule =
-    isNews
-      ? 'NEWS'
-      : 'PRODUCTION';
+  const activityModule = 'PRODUCTION' as const;
 
 
   // =========================================================

@@ -109,7 +109,6 @@ export interface WorkflowRow {
 export interface VideoRow {
   // Map trực tiếp với WorkflowRow thuộc SẢN XUẤT.
   // Chỉ PRODUCTION mới chạy Video.
-  sourceModule: 'PRODUCTION';
   id: string;
 
   stt: string;
