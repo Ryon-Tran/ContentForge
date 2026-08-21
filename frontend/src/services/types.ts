@@ -1,131 +1,85 @@
 import {
   WorkflowRow,
   VideoRow,
-  ImageVersion,
-  VideoVersion,
-  ActivityLog
+  ActivityLog,
+  AIProviderConfig
 } from '../types';
 
-
-export type StorageTable =
-  | 'production'
-  | 'news'
-  | 'video';
-
-
-export interface AIService {
-
-  generateImage(
-    prompt: string,
-    referenceIds: string[],
-    model: string
-  ): Promise<ImageVersion>;
-
-
-  generateVideo(
-    prompt: string,
-    firstFrameId: string,
-    model: string
-  ): Promise<VideoVersion>;
-
-
-  generateText(
-    prompt: string
-  ): Promise<string>;
-
-}
-
-
-export interface StorageService {
-
-  saveRow(
-    row: WorkflowRow | VideoRow,
-    table: StorageTable
-  ): Promise<void>;
-
-
-  loadRows(
-    table: StorageTable
-  ): Promise<any[]>;
-
-
-  loadRow(
-    id: string
-  ): Promise<any>;
-
-
-  deleteRow(
-    id: string,
-    table: StorageTable
-  ): Promise<void>;
-
-  importCSV(
-    file: File
-  ): Promise<{ status: string, imported: number }>;
-
-}
-
-
-export interface FileService {
-
-  saveFile(
-    base64: string,
-    mimeType: string,
-    filename: string,
-    path: string
-  ): Promise<void>;
-
-}
-
-
-export interface ActivityLogService {
-
-  create(
-    log: ActivityLog
-  ): Promise<ActivityLog>;
-
-
-  list(): Promise<ActivityLog[]>;
-
-
-  update(
-    id: string,
-    patch: Partial<ActivityLog>
-  ): Promise<ActivityLog>;
-
-
-  delete(
-    id: string
-  ): Promise<void>;
-
-
-  clear(): Promise<void>;
-
-}
-
-
-export interface JobService {
-  enqueue(
-    rowId: string,
-    jobType: string,
-    payload: any
-  ): Promise<{ id: string, status: string }>;
-
-  getJob(
-    jobId: string
-  ): Promise<any>;
-}
-
 export interface IService {
+  ai: {
+    generateText: (prompt: string, model?: string) => Promise<{ text: string }>;
+    generateImage: (payload: {
+      prompt: string;
+      referenceImages?: any[];
+      aspectRatio?: string;
+      model?: string;
+    }) => Promise<{ base64: string; mimeType: string; mediaId: string }>;
+    generateVideo: (payload: {
+      prompt: string;
+      firstFrameId?: string;
+      firstFrameBase64?: string;
+      firstFrameMimeType?: string;
+      aspectRatio?: string;
+      durationSeconds?: number;
+      resolution?: string;
+      model?: string;
+    }) => Promise<{ base64: string; mimeType: string; mediaId: string }>;
+  };
 
-  ai: AIService;
+  tts: {
+    generateTTS: (text: string, voice?: string) => Promise<{ base64: string; mimeType: string; mediaId: string; voice: string }>;
+  };
 
-  storage: StorageService;
+  storage: {
+    saveRow: (row: WorkflowRow | VideoRow, table: string) => Promise<{ success: boolean }>;
+    loadRows: (table: string) => Promise<WorkflowRow[] | VideoRow[]>;
+    deleteRow: (id: string, table: string) => Promise<{ success: boolean }>;
+  };
 
-  files: FileService;
+  files: {
+    saveFile: (payload: {
+      path: string;
+      filename: string;
+      base64: string;
+      mimeType: string;
+    }) => Promise<{ success: boolean; path: string; filename: string }>;
+    exportBundle: (payload: {
+      stt: string;
+      savePath: string;
+      imageVersion?: any;
+      captionText?: string;
+      audioBase64?: string;
+      videoVersion?: any;
+      metadata?: any;
+    }) => Promise<{ success: boolean; directory: string; stt: string; savedFiles: string[] }>;
+  };
 
-  activity: ActivityLogService;
+  activity: {
+    log: (activity: Partial<ActivityLog>) => Promise<any>;
+    list: () => Promise<ActivityLog[]>;
+    clear: () => Promise<any>;
+  };
 
-  jobs: JobService;
+  jobs: {
+    enqueue: (payload: { row_id: string; job_type: string; payload?: any }) => Promise<any>;
+    list: (row_id?: string, status?: string) => Promise<any[]>;
+    retry: (jobId: string) => Promise<any>;
+    cancel: (jobId: string) => Promise<any>;
+  };
 
+  config: {
+    listProviders: () => Promise<AIProviderConfig[]>;
+    createProvider: (provider: Partial<AIProviderConfig> & { apiKey?: string }) => Promise<any>;
+    updateProvider: (id: string, provider: Partial<AIProviderConfig> & { apiKey?: string }) => Promise<any>;
+    deleteProvider: (id: string) => Promise<any>;
+    setDefault: (id: string, type: string) => Promise<any>;
+    testConnection: (data: {
+      provider: string;
+      type: string;
+      model: string;
+      baseUrl?: string;
+      apiKey?: string;
+      extraConfig?: any;
+    }) => Promise<{ ok: boolean; message: string; models?: string[] }>;
+  };
 }

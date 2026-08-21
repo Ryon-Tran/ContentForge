@@ -1,94 +1,145 @@
 import React, { useEffect, useState } from 'react';
-import { PageLayout } from '../layouts/PageLayout';
+import { FlowService } from '../services/FlowService';
+import { StatusBadge } from './ui/StatusBadge';
 import { Button } from './ui/Button';
-import {
-  API_BASE
-} from '../config';
-
-interface Job {
-  id: string;
-  row_id: string;
-  job_type: string;
-  status: string;
-  retry_count: number;
-  error: string | null;
-  created_at: number;
-}
+import { EmptyState } from './ui/EmptyState';
 
 export const QueueModule: React.FC = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/jobs`);
-      if (res.ok) {
-        const data = await res.json();
-        setJobs(data);
-      }
-    } catch (err) {
-      console.error(err);
+      const data = await FlowService.jobs.list(
+        undefined,
+        filterStatus === 'ALL' ? undefined : filterStatus
+      );
+      setJobs(data);
+    } catch (e) {
+      console.error('Lỗi tải danh sách Jobs:', e);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchJobs();
-    const interval = setInterval(fetchJobs, 2000);
+    const interval = setInterval(fetchJobs, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [filterStatus]);
 
-  const handleCancel = async (id: string) => {
-    await fetch(`${API_BASE}/api/jobs/${id}/cancel`, { method: 'POST' });
+  const handleRetry = async (jobId: string) => {
+    await FlowService.jobs.retry(jobId);
     fetchJobs();
   };
 
-  const handleRetry = async (id: string) => {
-    await fetch(`${API_BASE}/api/jobs/${id}/retry`, { method: 'POST' });
+  const handleCancel = async (jobId: string) => {
+    await FlowService.jobs.cancel(jobId);
     fetchJobs();
-  };
-
-  const getStatusColor = (status: string) => {
-    switch(status) {
-        case 'DONE': return 'text-green-600';
-        case 'FAILED': return 'text-red-600';
-        case 'RUNNING': return 'text-blue-600 animate-pulse';
-        case 'CANCELLED': return 'text-slate-400';
-        default: return 'text-amber-600';
-    }
   };
 
   return (
-    <PageLayout
-      title="HÀNG ĐỢI"
-      description={`${jobs.length} công việc trong hệ thống`}
-    >
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+    <div className="page-wrap">
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">HÀNG ĐỢI XỬ LÝ (JOB QUEUE)</h2>
+          <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
+            Quản lý các tác vụ sinh Ảnh, Video, Audio và Full Pipeline đang chạy ngầm
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            className="ui-select text-[12px] py-1.5 h-8.5 w-36"
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+          >
+            <option value="ALL">Tất cả trạng thái</option>
+            <option value="PENDING">Đang chờ (Pending)</option>
+            <option value="RUNNING">Đang chạy (Running)</option>
+            <option value="DONE">Hoàn thành (Done)</option>
+            <option value="FAILED">Thất bại (Failed)</option>
+          </select>
+          <Button variant="secondary" icon="refresh" onClick={fetchJobs}>
+            Làm mới
+          </Button>
+        </div>
+      </div>
+
+      <div className="data-table-container">
         {jobs.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-slate-300 space-y-4">
-            <span className="material-symbols-outlined text-7xl">sync</span>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Hàng đợi đang rỗng</p>
-          </div>
+          <EmptyState
+            icon="queue"
+            title="Hàng đợi trống"
+            description="Hiện không có tác vụ nào đang chờ xử lý."
+          />
         ) : (
-          jobs.map(job => (
-            <div key={job.id} className="bg-white p-3 rounded-md border border-slate-200 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-500">{job.job_type} - Row: {job.row_id}</span>
-                    <span className={`text-xs mt-1 font-mono font-bold ${getStatusColor(job.status)}`}>
-                        {job.status} {job.status === 'RUNNING' && <span className="material-symbols-outlined text-[10px] animate-spin">sync</span>}
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th style={{ width: 140 }}>Mã Tác Vụ</th>
+                <th style={{ width: 140 }}>Loại Tác Vụ</th>
+                <th style={{ width: 120 }}>Trạng Thái</th>
+                <th style={{ width: 90 }}>Lần Thử</th>
+                <th style={{ width: 280 }}>Lỗi / Thông Tin</th>
+                <th style={{ width: 140 }}>Thời Gian</th>
+                <th style={{ width: 120 }}>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {jobs.map(job => (
+                <tr key={job.id}>
+                  <td className="font-mono text-[11px] text-[var(--text-muted)]">
+                    {job.id.substring(0, 8)}...
+                  </td>
+                  <td>
+                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[var(--bg-soft)] border border-[var(--border)] text-[var(--text-main)]">
+                      {job.job_type}
                     </span>
-                    {job.error && <span className="text-[10px] text-red-500 mt-1 line-clamp-1 opacity-80">{job.error}</span>}
-                </div>
-                <div className="flex space-x-2">
-                    {['PENDING', 'RUNNING'].includes(job.status) && (
-                        <Button variant="danger" size="sm" onClick={() => handleCancel(job.id)}>Hủy</Button>
-                    )}
-                    {['FAILED', 'CANCELLED'].includes(job.status) && (
-                        <Button variant="secondary" size="sm" onClick={() => handleRetry(job.id)}>Thử lại</Button>
-                    )}
-                </div>
-            </div>
-          ))
+                  </td>
+                  <td>
+                    <StatusBadge status={job.status} />
+                  </td>
+                  <td className="text-center font-semibold text-[12px]">
+                    {job.retry_count} / {job.max_retries}
+                  </td>
+                  <td className="text-[11.5px] text-rose-400 font-mono max-w-xs truncate">
+                    {job.error || '—'}
+                  </td>
+                  <td className="text-[11px] text-[var(--text-muted)]">
+                    {new Date(job.created_at).toLocaleTimeString('vi-VN')}
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-1">
+                      {job.status === 'FAILED' && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon="replay"
+                          onClick={() => handleRetry(job.id)}
+                        >
+                          Thử lại
+                        </Button>
+                      )}
+                      {(job.status === 'PENDING' || job.status === 'RUNNING') && (
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          icon="cancel"
+                          onClick={() => handleCancel(job.id)}
+                        >
+                          Hủy
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
-    </PageLayout>
+    </div>
   );
 };

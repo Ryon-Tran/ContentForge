@@ -34,10 +34,11 @@ def init_db():
                 provider TEXT NOT NULL,
                 type TEXT NOT NULL,
                 model TEXT NOT NULL,
-                base_url TEXT NOT NULL,
-                api_key TEXT NOT NULL,
+                base_url TEXT NOT NULL DEFAULT '',
+                api_key TEXT NOT NULL DEFAULT '',
                 is_active INTEGER NOT NULL DEFAULT 1,
                 is_default INTEGER NOT NULL DEFAULT 0,
+                extra_config TEXT NOT NULL DEFAULT '{}',
                 created_at INTEGER NOT NULL
             )
         """)
@@ -68,12 +69,19 @@ def init_db():
         
         conn.commit()
         
-        try:
-            conn.execute("ALTER TABLE jobs ADD COLUMN payload TEXT;")
-            conn.commit()
-            print("[DB] Added missing 'payload' column to 'jobs' table.")
-        except sqlite3.OperationalError:
-            pass
+        # Migration: thêm cột mới nếu chưa tồn tại
+        _run_migration(conn, "ALTER TABLE jobs ADD COLUMN payload TEXT;", "payload column to jobs")
+        _run_migration(conn, "ALTER TABLE ai_configs ADD COLUMN extra_config TEXT NOT NULL DEFAULT '{}';", "extra_config column to ai_configs")
             
     finally:
         conn.close()
+
+
+def _run_migration(conn, sql: str, description: str):
+    """Chạy migration ALTER TABLE, bỏ qua nếu cột đã tồn tại."""
+    try:
+        conn.execute(sql)
+        conn.commit()
+        print(f"[DB Migration] Added {description}.")
+    except sqlite3.OperationalError:
+        pass

@@ -1,618 +1,279 @@
+import { API_BASE } from '../config';
 import {
-  IService,
-  StorageTable
-} from './types';
-
-import {
-  ActivityLog
+  WorkflowRow,
+  VideoRow,
+  ActivityLog,
+  AIProviderConfig
 } from '../types';
+import { IService } from './types';
 
-import {
-  API_BASE
-} from '../config';
-
-
-async function apiRequest<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
-
-  const response =
-    await fetch(
-      `${API_BASE}${path}`,
-      {
-        headers: {
-          'Content-Type':
-            'application/json',
-
-          ...(options.headers || {})
-        },
-
-        ...options
-      }
-    );
-
-
-  if (!response.ok) {
-
-    let detail =
-      '';
-
-
-    try {
-
-      const contentType =
-        response.headers.get(
-          'content-type'
-        ) || '';
-
-
-      if (
-        contentType.includes(
-          'application/json'
-        )
-      ) {
-
-        const data =
-          await response.json();
-
-        if (
-          typeof data?.detail ===
-          'string'
-        ) {
-
-          detail =
-            data.detail;
-
-        } else if (
-          data?.detail
-        ) {
-
-          detail =
-            JSON.stringify(
-              data.detail
-            );
-
-        } else {
-
-          detail =
-            JSON.stringify(
-              data
-            );
-
-        }
-
-      } else {
-
-        detail =
-          await response.text();
-
-      }
-
-    } catch {
-
-      detail =
-        `HTTP ${response.status}`;
-
-    }
-
-    throw new Error(
-      detail ||
-      `API ${path} failed: ${response.status}`
-    );
-
-  }
-
-
-  const contentType =
-    response.headers.get(
-      'content-type'
-    ) || '';
-
-
-  if (
-    !contentType.includes(
-      'application/json'
-    )
-  ) {
-
-    return {} as T;
-
-  }
-
-
-  return response.json();
-
-}
-
-
-export const FlowService:
-  IService = {
-
-  // =========================================================
-  // AI
-  // =========================================================
-
+export const FlowService: IService = {
   ai: {
-
-    generateImage:
-      async (
-        prompt,
-        referenceIds,
-        model
-      ) => {
-
-      const result =
-        await apiRequest<{
-          base64: string;
-          mimeType: string;
-          mediaId?: string;
-        }>(
-          '/api/ai/generate-image',
-          {
-            method: 'POST',
-
-            body:
-              JSON.stringify({
-                prompt,
-                referenceIds,
-                model,
-                aspectRatio:
-                  '9:16'
-              })
-          }
-        );
-
-
-      return {
-        id:
-          crypto.randomUUID(),
-
-        base64:
-          result.base64,
-
-        mimeType:
-          result.mimeType,
-
-        mediaId:
-          result.mediaId ??
-          crypto.randomUUID(),
-
-        createdAt:
-          Date.now()
-      };
-
+    generateText: async (prompt: string, model?: string) => {
+      const res = await fetch(`${API_BASE}/api/ai/generate-text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, model })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi sinh Text');
+      }
+      return await res.json();
     },
 
-
-    generateVideo:
-      async (
-        prompt,
-        firstFrameId,
-        model
-      ) => {
-
-      const result =
-        await apiRequest<{
-          base64: string;
-          mimeType: string;
-          mediaId?: string;
-        }>(
-          '/api/ai/generate-video',
-          {
-            method:
-              'POST',
-
-            body:
-              JSON.stringify({
-                prompt,
-                firstFrameId,
-                model,
-                aspectRatio:
-                  '9:16',
-
-                durationSeconds:
-                  8
-              })
-          }
-        );
-
-
-      return {
-        id:
-          crypto.randomUUID(),
-
-        base64:
-          result.base64,
-
-        mimeType:
-          result.mimeType,
-
-        mediaId:
-          result.mediaId ??
-          crypto.randomUUID(),
-
-        sourceImageId:
-          firstFrameId,
-
-        createdAt:
-          Date.now()
-      };
-
+    generateImage: async (payload: {
+      prompt: string;
+      referenceImages?: any[];
+      aspectRatio?: string;
+      model?: string;
+    }) => {
+      const res = await fetch(`${API_BASE}/api/ai/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: payload.prompt,
+          referenceImages: payload.referenceImages || [],
+          aspectRatio: payload.aspectRatio || '9:16',
+          model: payload.model
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi sinh Ảnh');
+      }
+      return await res.json();
     },
 
-
-    generateText:
-      async (
-        prompt
-      ) => {
-
-      const result =
-        await apiRequest<{
-          text: string;
-        }>(
-          '/api/ai/generate-text',
-          {
-            method:
-              'POST',
-
-            body:
-              JSON.stringify({
-                prompt
-              })
-          }
-        );
-
-
-      return result.text;
-
+    generateVideo: async (payload: {
+      prompt: string;
+      firstFrameId?: string;
+      firstFrameBase64?: string;
+      firstFrameMimeType?: string;
+      aspectRatio?: string;
+      durationSeconds?: number;
+      resolution?: string;
+      model?: string;
+    }) => {
+      const res = await fetch(`${API_BASE}/api/ai/generate-video`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi sinh Video');
+      }
+      return await res.json();
     }
-
   },
 
-
-  // =========================================================
-  // STORAGE
-  // =========================================================
+  tts: {
+    generateTTS: async (text: string, voice: string = 'vi-VN-HoaiMyNeural') => {
+      const res = await fetch(`${API_BASE}/api/tts/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi sinh giọng đọc TTS');
+      }
+      return await res.json();
+    }
+  },
 
   storage: {
-
-    saveRow:
-      async (
-        row,
-        table:
-          StorageTable
-      ) => {
-
-      await apiRequest<{
-        success:
-          boolean;
-      }>(
-        '/api/storage/save-row',
-        {
-          method:
-            'POST',
-
-          body:
-            JSON.stringify({
-              row,
-              table
-            })
-        }
-      );
-
-    },
-
-
-    loadRows:
-      async (
-        table:
-          StorageTable
-      ) => {
-
-      const result =
-        await apiRequest<{
-          rows:
-            any[];
-        }>(
-          `/api/storage/load-rows?table=${encodeURIComponent(table)}`,
-          {
-            method:
-              'GET'
-          }
-        );
-
-
-      return (
-        result.rows ||
-        []
-      );
-
-    },
-
-    loadRow:
-      async (
-        id: string
-      ) => {
-        const result = await apiRequest<{ row: any }>(
-          `/api/storage/load-row?id=${encodeURIComponent(id)}`,
-          { method: 'GET' }
-        );
-        return result.row;
-      },
-
-
-    deleteRow:
-      async (
-        id: string,
-        table:
-          StorageTable
-      ) => {
-
-      await apiRequest<{
-        success:
-          boolean;
-      }>(
-        '/api/storage/delete-row',
-        {
-          method:
-            'POST',
-
-          body:
-            JSON.stringify({
-              id,
-              table
-            })
-        }
-      );
-
-    },
-
-    importCSV: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await fetch(`${API_BASE}/api/batch/import`, {
+    saveRow: async (row: WorkflowRow | VideoRow, table: string) => {
+      const res = await fetch(`${API_BASE}/api/storage/save-row`, {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ row, table })
       });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`CSV Import failed: ${response.status} ${text}`);
-      }
-      return response.json();
+      if (!res.ok) throw new Error('Lỗi lưu dữ liệu hàng');
+      return await res.json();
+    },
+
+    loadRows: async (table: string) => {
+      const res = await fetch(`${API_BASE}/api/storage/load-rows?table=${encodeURIComponent(table)}`);
+      if (!res.ok) throw new Error('Lỗi tải dữ liệu bảng');
+      const data = await res.json();
+      return data.rows || [];
+    },
+
+    deleteRow: async (id: string, table: string) => {
+      const res = await fetch(`${API_BASE}/api/storage/delete-row`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, table })
+      });
+      if (!res.ok) throw new Error('Lỗi xóa dòng');
+      return await res.json();
     }
-
   },
-
-
-  // =========================================================
-  // FILES
-  // =========================================================
 
   files: {
-
-    saveFile:
-      async (
-        base64:
-          string,
-
-        mimeType:
-          string,
-
-        filename:
-          string,
-
-        path:
-          string
-      ) => {
-
-      await apiRequest<{
-        success:
-          boolean;
-
-        path?:
-          string;
-
-        filename?:
-          string;
-
-        overwritten?:
-          boolean;
-      }>(
-        '/api/files/save-file',
-        {
-          method:
-            'POST',
-
-          body:
-            JSON.stringify({
-              base64,
-              mimeType,
-              filename,
-              path
-            })
-        }
-      );
-
-    }
-
-  },
-
-
-  // =========================================================
-  // JOBS
-  // =========================================================
-
-  jobs: {
-    enqueue: async (rowId: string, jobType: string, payload: any) => {
-      return await apiRequest<{ id: string, status: string }>(
-        '/api/jobs',
-        {
-          method: 'POST',
-          body: JSON.stringify({ row_id: rowId, job_type: jobType, payload })
-        }
-      );
+    saveFile: async (payload: {
+      path: string;
+      filename: string;
+      base64: string;
+      mimeType: string;
+    }) => {
+      const res = await fetch(`${API_BASE}/api/files/save-file`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi lưu file');
+      }
+      return await res.json();
     },
-    
-    getJob: async (jobId: string) => {
-      return await apiRequest<any>(
-        `/api/jobs/${encodeURIComponent(jobId)}`,
-        {
-          method: 'GET'
-        }
-      );
+
+    exportBundle: async (payload: {
+      stt: string;
+      savePath: string;
+      imageVersion?: any;
+      captionText?: string;
+      audioBase64?: string;
+      videoVersion?: any;
+      metadata?: any;
+    }) => {
+      const res = await fetch(`${API_BASE}/api/files/export-bundle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi xuất trọn gói bundle');
+      }
+      return await res.json();
     }
   },
-
-
-  // =========================================================
-  // ACTIVITY LOG CRUD
-  // =========================================================
 
   activity: {
-
-    // -------------------------------------------------------
-    // CREATE
-    // -------------------------------------------------------
-
-    create:
-      async (
-        log:
-          ActivityLog
-      ) => {
-
-      const result =
-        await apiRequest<{
-          activity:
-            ActivityLog;
-        }>(
-          '/api/activity',
-          {
-            method:
-              'POST',
-
-            body:
-              JSON.stringify({
-                activity:
-                  log
-              })
-          }
-        );
-
-
-      return result.activity;
-
+    log: async (activity: Partial<ActivityLog>) => {
+      try {
+        const res = await fetch(`${API_BASE}/api/activity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ activity })
+        });
+        return await res.json();
+      } catch (e) {
+        console.error('Lỗi ghi log:', e);
+      }
     },
 
-
-    // -------------------------------------------------------
-    // READ
-    // -------------------------------------------------------
-
-    list:
-      async () => {
-
-      const result =
-        await apiRequest<{
-          activities:
-            ActivityLog[];
-        }>(
-          '/api/activity',
-          {
-            method:
-              'GET'
-          }
-        );
-
-
-      return (
-        result.activities ||
-        []
-      );
-
+    list: async () => {
+      const res = await fetch(`${API_BASE}/api/activity`);
+      if (!res.ok) throw new Error('Lỗi tải nhật ký');
+      const data = await res.json();
+      return data.activities || [];
     },
 
-
-    // -------------------------------------------------------
-    // UPDATE
-    // -------------------------------------------------------
-
-    update:
-      async (
-        id:
-          string,
-
-        patch:
-          Partial<ActivityLog>
-      ) => {
-
-      const result =
-        await apiRequest<{
-          activity:
-            ActivityLog;
-        }>(
-          `/api/activity/${encodeURIComponent(id)}`,
-          {
-            method:
-              'PUT',
-
-            body:
-              JSON.stringify({
-                patch
-              })
-          }
-        );
-
-
-      return result.activity;
-
-    },
-
-
-    // -------------------------------------------------------
-    // DELETE ONE
-    // -------------------------------------------------------
-
-    delete:
-      async (
-        id:
-          string
-      ) => {
-
-      await apiRequest<{
-        success:
-          boolean;
-      }>(
-        `/api/activity/${encodeURIComponent(id)}`,
-        {
-          method:
-            'DELETE'
-        }
-      );
-
-    },
-
-
-    // -------------------------------------------------------
-    // CLEAR ALL
-    // -------------------------------------------------------
-
-    clear:
-      async () => {
-
-      await apiRequest<{
-        success:
-          boolean;
-      }>(
-        '/api/activity',
-        {
-          method:
-            'DELETE'
-        }
-      );
-
+    clear: async () => {
+      const res = await fetch(`${API_BASE}/api/activity`, { method: 'DELETE' });
+      return await res.json();
     }
+  },
 
+  jobs: {
+    enqueue: async (payload: { row_id: string; job_type: string; payload?: any }) => {
+      const res = await fetch(`${API_BASE}/api/jobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Lỗi đẩy job vào hàng đợi');
+      return await res.json();
+    },
+
+    list: async (row_id?: string, status?: string) => {
+      let url = `${API_BASE}/api/jobs?`;
+      if (row_id) url += `row_id=${encodeURIComponent(row_id)}&`;
+      if (status) url += `status=${encodeURIComponent(status)}&`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Lỗi tải hàng đợi');
+      return await res.json();
+    },
+
+    retry: async (jobId: string) => {
+      const res = await fetch(`${API_BASE}/api/jobs/${jobId}/retry`, { method: 'POST' });
+      return await res.json();
+    },
+
+    cancel: async (jobId: string) => {
+      const res = await fetch(`${API_BASE}/api/jobs/${jobId}/cancel`, { method: 'POST' });
+      return await res.json();
+    }
+  },
+
+  config: {
+    listProviders: async () => {
+      const res = await fetch(`${API_BASE}/api/config/ai-providers`);
+      if (!res.ok) throw new Error('Lỗi tải AI providers');
+      const data = await res.json();
+      return data.providers || [];
+    },
+
+    createProvider: async (provider: Partial<AIProviderConfig> & { apiKey?: string }) => {
+      const res = await fetch(`${API_BASE}/api/config/ai-providers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(provider)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi tạo AI provider');
+      }
+      return await res.json();
+    },
+
+    updateProvider: async (id: string, provider: Partial<AIProviderConfig> & { apiKey?: string }) => {
+      const res = await fetch(`${API_BASE}/api/config/ai-providers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(provider)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Lỗi cập nhật AI provider');
+      }
+      return await res.json();
+    },
+
+    deleteProvider: async (id: string) => {
+      const res = await fetch(`${API_BASE}/api/config/ai-providers/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Lỗi xóa AI provider');
+      return await res.json();
+    },
+
+    setDefault: async (id: string, type: string) => {
+      const res = await fetch(`${API_BASE}/api/config/set-default`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type })
+      });
+      return await res.json();
+    },
+
+    testConnection: async (data: {
+      provider: string;
+      type: string;
+      model: string;
+      baseUrl?: string;
+      apiKey?: string;
+      extraConfig?: any;
+    }) => {
+      const res = await fetch(`${API_BASE}/api/config/test-connection`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    }
   }
-
 };
