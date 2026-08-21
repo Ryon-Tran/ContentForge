@@ -16,9 +16,9 @@ import {
   useI18n
 } from '../i18n/I18nContext';
 
-
-const API_BASE =
-  'http://127.0.0.1:8000';
+import {
+  API_BASE
+} from '../config';
 
 
 interface FormState {
@@ -61,7 +61,7 @@ const PROVIDER_PRESETS:
       label: 'Google Gemini',
       provider: 'google',
       name: 'Gemini Text',
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       baseUrl: 'https://generativelanguage.googleapis.com'
     },
     {
@@ -573,6 +573,48 @@ export const ConfigModule:
     PROVIDER_PRESETS[
       type
     ][0];
+
+
+  const getModelPresetValues = (
+    type: AIProviderType
+  ) => {
+
+    const models =
+      new Set<string>(
+        type === 'TEXT'
+          ? [
+              'gemini-3.7-flash',
+              'gemini-3.6-flash',
+              'gemini-3.5-flash',
+              'gemini-2.5-flash',
+              'gemini-2.5-pro'
+            ]
+          : []
+      );
+
+    PROVIDER_PRESETS[
+      type
+    ].forEach(
+      preset => {
+
+        if (
+          preset.model
+        ) {
+
+          models.add(
+            preset.model
+          );
+
+        }
+
+      }
+    );
+
+    return [
+      ...models
+    ];
+
+  };
 
 
   const applyPresetToForm = (
@@ -2235,16 +2277,16 @@ export const ConfigModule:
 
                   <datalist id="ai-model-presets">
                     {
-                      PROVIDER_PRESETS[
+                      getModelPresetValues(
                         form.type
-                      ].map(
-                        preset => (
+                      ).map(
+                        model => (
                           <option
                             key={
-                              preset.model
+                              model
                             }
                             value={
-                              preset.model
+                              model
                             }
                           />
                         )

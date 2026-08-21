@@ -281,6 +281,74 @@ export const PipelineModule:
   };
 
 
+  const waitForJob =
+    async (
+      jobId: string,
+      label: string,
+      timeoutMs = 15 * 60 * 1000
+    ) => {
+
+      const startedAt =
+        Date.now();
+
+
+      while (true) {
+
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              2000
+            )
+        );
+
+
+        const job =
+          await service.jobs.getJob(
+            jobId
+          );
+
+
+        if (
+          job.status === 'DONE'
+        ) {
+
+          return job;
+
+        }
+
+
+        if (
+          job.status === 'FAILED' ||
+          job.status === 'CANCELLED'
+        ) {
+
+          throw new Error(
+            job.error ||
+            `${label} thất bại.`
+          );
+
+        }
+
+
+        if (
+          Date.now() -
+            startedAt >
+          timeoutMs
+        ) {
+
+          throw new Error(
+            `${label} chạy quá lâu chưa xong. ` +
+            'Kiểm tra backend worker và CONTENTFORGE_API_BASE.'
+          );
+
+        }
+
+      }
+
+    };
+
+
   const makeDisplayPath = (
     directory: string,
     filename: string
@@ -1113,6 +1181,20 @@ export const PipelineModule:
             : row.imagePrompt.trim();
 
 
+        await service.storage.saveRow(
+          {
+            ...row,
+            status:
+              'RUNNING',
+            error:
+              ''
+          },
+          isNews
+            ? 'news'
+            : 'production'
+        );
+
+
         const { id: jobId } = await service.jobs.enqueue(
           id,
           'IMAGE_GEN',
@@ -1124,24 +1206,20 @@ export const PipelineModule:
           }
         );
 
-        let done = false;
-        while (!done) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          const job = await service.jobs.getJob(jobId);
-          if (job.status === 'DONE') {
-            done = true;
-            const updatedRow = await service.storage.loadRow(id);
-            setItems(prev => prev.map(item => item.id === id ? {
-              ...item,
-              imageVersions: updatedRow.imageVersions,
-              currentImageIndex: updatedRow.currentImageIndex,
-              status: 'COMPLETED',
-              error: ''
-            } : item));
-          } else if (job.status === 'FAILED' || job.status === 'CANCELLED') {
-            throw new Error(job.error || 'Job failed');
-          }
-        }
+        await waitForJob(
+          jobId,
+          'Tạo ảnh'
+        );
+
+
+        const updatedRow = await service.storage.loadRow(id);
+        setItems(prev => prev.map(item => item.id === id ? {
+          ...item,
+          imageVersions: updatedRow.imageVersions,
+          currentImageIndex: updatedRow.currentImageIndex,
+          status: 'COMPLETED',
+          error: ''
+        } : item));
 
 
         await writeActivity(
@@ -1474,25 +1552,36 @@ BẮT ĐẦU VIẾT CAPTION.
           );
 
 
+        await service.storage.saveRow(
+          {
+            ...row,
+            status:
+              'RUNNING',
+            error:
+              ''
+          },
+          isNews
+            ? 'news'
+            : 'production'
+        );
+
+
         const { id: jobId } = await service.jobs.enqueue(
           id,
           'CAPTION_GEN',
           { prompt }
         );
 
-        let done = false;
         let text = '';
-        while (!done) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          const job = await service.jobs.getJob(jobId);
-          if (job.status === 'DONE') {
-            done = true;
-            const updatedRow = await service.storage.loadRow(id);
-            text = updatedRow.captionResult || '';
-          } else if (job.status === 'FAILED' || job.status === 'CANCELLED') {
-            throw new Error(job.error || 'Job failed');
-          }
-        }
+
+        await waitForJob(
+          jobId,
+          'Tạo caption'
+        );
+
+
+        const updatedRow = await service.storage.loadRow(id);
+        text = updatedRow.captionResult || '';
 
 
         if (!text) {

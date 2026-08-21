@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { PageLayout } from '../layouts/PageLayout';
 import { Button } from './ui/Button';
+import {
+  API_BASE
+} from '../config';
 
 interface Job {
   id: string;
@@ -17,7 +20,7 @@ export const QueueModule: React.FC = () => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/jobs');
+      const res = await fetch(`${API_BASE}/api/jobs`);
       if (res.ok) {
         const data = await res.json();
         setJobs(data);
@@ -34,12 +37,12 @@ export const QueueModule: React.FC = () => {
   }, []);
 
   const handleCancel = async (id: string) => {
-    await fetch(`http://localhost:8000/api/jobs/${id}/cancel`, { method: 'POST' });
+    await fetch(`${API_BASE}/api/jobs/${id}/cancel`, { method: 'POST' });
     fetchJobs();
   };
 
   const handleRetry = async (id: string) => {
-    await fetch(`http://localhost:8000/api/jobs/${id}/retry`, { method: 'POST' });
+    await fetch(`${API_BASE}/api/jobs/${id}/retry`, { method: 'POST' });
     fetchJobs();
   };
 

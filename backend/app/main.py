@@ -1107,13 +1107,69 @@ async def request_json(
         400
     ):
 
+        error_text = (
+            response.text
+        )
+
+
+        try:
+
+            error_data = response.json()
+
+            if isinstance(
+                error_data,
+                dict
+            ):
+
+                provider_error = error_data.get(
+                    "error"
+                )
+
+                if isinstance(
+                    provider_error,
+                    dict
+                ):
+
+                    error_text = (
+                        provider_error.get(
+                            "message"
+                        )
+                        or
+                        json.dumps(
+                            provider_error,
+                            ensure_ascii=False
+                        )
+                    )
+
+                elif error_data.get(
+                    "detail"
+                ):
+
+                    error_text = str(
+                        error_data[
+                            "detail"
+                        ]
+                    )
+
+                else:
+
+                    error_text = json.dumps(
+                        error_data,
+                        ensure_ascii=False
+                    )
+
+        except Exception:
+
+            pass
+
+
         raise HTTPException(
             status_code=502,
 
             detail=(
                 f"Provider API lỗi "
                 f"{response.status_code}: "
-                f"{response.text[:4000]}"
+                f"{error_text[:4000]}"
             )
         )
 
@@ -1197,7 +1253,7 @@ async def download_to_base64(
 # GOOGLE URL
 # =========================================================
 
-def google_root_url(
+def google_api_base_url(
     base_url: str
 ) -> str:
 
@@ -1206,28 +1262,23 @@ def google_root_url(
     ).strip().rstrip("/")
 
 
-    for suffix in (
-        "/v1beta",
+    if clean.endswith(
+        "/v1beta"
+    ) or clean.endswith(
         "/v1"
     ):
 
-        if clean.endswith(
-            suffix
-        ):
-
-            clean = clean[
-                :-len(
-                    suffix
-                )
-            ]
-
-            break
+        return clean
 
 
-    return (
+    root = (
         clean
         or
         "https://generativelanguage.googleapis.com"
+    )
+
+    return (
+        f"{root}/v1beta"
     )
 
 
@@ -1240,7 +1291,7 @@ async def generate_google_text(
     prompt: str
 ) -> str:
 
-    root = google_root_url(
+    api_base = google_api_base_url(
         cfg[
             "base_url"
         ]
@@ -1256,50 +1307,76 @@ async def generate_google_text(
 
 
     url = (
-        f"{root}"
-        f"/v1beta/models/"
+        f"{api_base}"
+        f"/models/"
         f"{model}"
         f":generateContent"
     )
 
 
-    result = await request_json(
-        "POST",
+    try:
 
-        url,
+        result = await request_json(
+            "POST",
 
-        cfg[
-            "api_key"
-        ],
+            url,
 
-        headers={
-            "x-goog-api-key":
-                cfg[
-                    "api_key"
-                ],
+            cfg[
+                "api_key"
+            ],
 
-            "Content-Type":
-                "application/json"
-        },
+            headers={
+                "x-goog-api-key":
+                    cfg[
+                        "api_key"
+                    ],
 
-        auth_bearer=False,
+                "Content-Type":
+                    "application/json"
+            },
 
-        json={
-            "contents": [
-                {
-                    "role":
-                        "user",
+            auth_bearer=False,
 
-                    "parts": [
-                        {
-                            "text":
-                                prompt
-                        }
-                    ]
-                }
-            ]
-        }
-    )
+            json={
+                "contents": [
+                    {
+                        "role":
+                            "user",
+
+                        "parts": [
+                            {
+                                "text":
+                                    prompt
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
+
+    except HTTPException as exc:
+
+        detail = str(
+            exc.detail
+        )
+
+        if (
+            "404" in detail
+        ):
+
+            raise HTTPException(
+                status_code=502,
+
+                detail=(
+                    "Gemini không tìm thấy model "
+                    f"'{model}' trên endpoint "
+                    f"'{api_base}'. Hãy kiểm tra "
+                    "Model, Base URL hoặc quyền API key. "
+                    f"Chi tiết: {detail}"
+                )
+            )
+
+        raise
 
 
     text_parts = []
@@ -2063,7 +2140,7 @@ async def generate_google_image(
     data: GenerateImageRequest
 ):
 
-    root = google_root_url(
+    api_base = google_api_base_url(
         cfg[
             "base_url"
         ]
@@ -2071,8 +2148,8 @@ async def generate_google_image(
 
 
     url = (
-        f"{root}"
-        f"/v1beta/interactions"
+        f"{api_base}"
+        f"/interactions"
     )
 
 
@@ -2195,6 +2272,9 @@ async def generate_google_image(
                 cfg[
                     "api_key"
                 ],
+
+            "Api-Revision":
+                "2026-05-20",
 
             "Content-Type":
                 "application/json"
@@ -2804,7 +2884,7 @@ async def generate_google_veo_video(
     data: GenerateVideoRequest
 ):
 
-    root = google_root_url(
+    api_base = google_api_base_url(
         cfg[
             "base_url"
         ]
@@ -2820,8 +2900,8 @@ async def generate_google_veo_video(
 
 
     start_url = (
-        f"{root}"
-        f"/v1beta/models/"
+        f"{api_base}"
+        f"/models/"
         f"{model}"
         f":predictLongRunning"
     )
@@ -2956,8 +3036,8 @@ async def generate_google_veo_video(
 
 
     poll_url = (
-        f"{root}"
-        f"/v1beta/"
+        f"{api_base}"
+        f"/"
         f"{operation_name.lstrip('/')}"
     )
 

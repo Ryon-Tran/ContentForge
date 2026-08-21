@@ -50,9 +50,9 @@ import {
   I18nProvider
 } from './i18n/I18nContext';
 
-
-const API_BASE =
-  'http://127.0.0.1:8000';
+import {
+  API_BASE
+} from './config';
 
 
 export type ThemeMode =

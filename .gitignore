@@ -12,6 +12,7 @@ yarn-error.log*
 
 # Backend database
 backend/factory_ai.db
+backend/venv/
 
 # Python cache
 __pycache__/

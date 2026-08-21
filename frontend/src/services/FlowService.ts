@@ -7,9 +7,9 @@ import {
   ActivityLog
 } from '../types';
 
-
-const API_BASE =
-  'http://127.0.0.1:8000';
+import {
+  API_BASE
+} from '../config';
 
 
 async function apiRequest<T>(
@@ -35,11 +35,70 @@ async function apiRequest<T>(
 
   if (!response.ok) {
 
-    const text =
-      await response.text();
+    let detail =
+      '';
+
+
+    try {
+
+      const contentType =
+        response.headers.get(
+          'content-type'
+        ) || '';
+
+
+      if (
+        contentType.includes(
+          'application/json'
+        )
+      ) {
+
+        const data =
+          await response.json();
+
+        if (
+          typeof data?.detail ===
+          'string'
+        ) {
+
+          detail =
+            data.detail;
+
+        } else if (
+          data?.detail
+        ) {
+
+          detail =
+            JSON.stringify(
+              data.detail
+            );
+
+        } else {
+
+          detail =
+            JSON.stringify(
+              data
+            );
+
+        }
+
+      } else {
+
+        detail =
+          await response.text();
+
+      }
+
+    } catch {
+
+      detail =
+        `HTTP ${response.status}`;
+
+    }
 
     throw new Error(
-      `API ${path} failed: ${response.status} ${text}`
+      detail ||
+      `API ${path} failed: ${response.status}`
     );
 
   }
