@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -11,20 +12,12 @@ router = APIRouter(prefix="/api/files", tags=["Files"])
 
 
 class ExportBundleRequest(BaseModel):
-    """
-    Xuất trọn gói toàn bộ tài nguyên của 1 dòng kịch bản:
-    - 001.png (ảnh đại diện)
-    - 001.txt (caption kịch bản)
-    - 001.mp3 (audio giọng đọc nếu có)
-    - 001.mp4 (video nếu có)
-    - 001_meta.json (thông tin metadata)
-    """
     stt: str = "001"
     savePath: str
-    imageVersion: Optional[dict] = None  # { base64, mimeType }
+    imageVersion: Optional[dict] = None
     captionText: Optional[str] = None
     audioBase64: Optional[str] = None
-    videoVersion: Optional[dict] = None  # { base64, mimeType }
+    videoVersion: Optional[dict] = None
     metadata: Optional[dict] = Field(default_factory=dict)
 
 
@@ -37,6 +30,29 @@ def _resolve_dir(raw_path: str) -> str:
     if not os.access(directory, os.W_OK):
         raise PermissionError(f"Không có quyền ghi vào thư mục: {directory}")
     return directory
+
+
+def _native_browse_directory() -> str:
+    """Mở hộp thoại chọn thư mục gốc Windows thông qua tkinter."""
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        selected = filedialog.askdirectory(title="Chọn thư mục lưu file Tools-MMO")
+        root.destroy()
+        return selected or ""
+    except Exception as e:
+        print(f"[Browse Folder Error] {e}")
+        return ""
+
+
+@router.post("/browse-folder")
+async def browse_folder():
+    """Mở hộp thoại File Explorer chọn thư mục và trả về đường dẫn."""
+    path = await asyncio.to_thread(_native_browse_directory)
+    return {"path": path}
 
 
 @router.post("/save-file")
@@ -69,9 +85,6 @@ async def save_file(data: SaveFileRequest):
 
 @router.post("/export-bundle")
 async def export_bundle(data: ExportBundleRequest):
-    """
-    Xuất trọn gói 1 chạm tất cả file của STT vào thư mục đích.
-    """
     try:
         directory = _resolve_dir(data.savePath)
         stt = data.stt.strip().zfill(3)

@@ -24,6 +24,11 @@ const PRESETS: Record<AIProviderType, Preset[]> = {
     { label: 'DeepSeek', provider: 'deepseek', name: 'DeepSeek V3', model: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1' }
   ],
   IMAGE: [
+    { label: 'Pollinations FLUX (Free 100%)', provider: 'pollinations', name: 'Pollinations FLUX', model: 'flux', baseUrl: '', apiKeyHelp: 'Hoàn toàn miễn phí, không cần key' },
+    { label: 'Pollinations Realism (Free)', provider: 'pollinations', name: 'Pollinations Realism', model: 'flux-realism', baseUrl: '', apiKeyHelp: 'Hoàn toàn miễn phí, không cần key' },
+    { label: 'Pollinations Anime (Free)', provider: 'pollinations', name: 'Pollinations Anime', model: 'flux-anime', baseUrl: '', apiKeyHelp: 'Hoàn toàn miễn phí, không cần key' },
+    { label: 'Hugging Face FLUX (Free)', provider: 'huggingface', name: 'HF FLUX.1 Schnell', model: 'black-forest-labs/FLUX.1-schnell', baseUrl: 'https://api-inference.huggingface.co/models' },
+    { label: 'Hugging Face SDXL (Free)', provider: 'huggingface', name: 'HF SDXL Base', model: 'stabilityai/stable-diffusion-xl-base-1.0', baseUrl: 'https://api-inference.huggingface.co/models' },
     { label: 'Google Imagen', provider: 'google', name: 'Google Imagen 3', model: 'imagen-3.0-generate-002', baseUrl: 'https://generativelanguage.googleapis.com' },
     { label: 'OpenAI DALL-E', provider: 'openai', name: 'DALL-E 3', model: 'dall-e-3', baseUrl: 'https://api.openai.com/v1' },
     { label: 'xAI Grok Aurora', provider: 'xai', name: 'Grok Aurora Image', model: 'aurora', baseUrl: 'https://api.x.ai/v1' },

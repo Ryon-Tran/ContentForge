@@ -113,6 +113,16 @@ export const FlowService: IService = {
   },
 
   files: {
+    browseFolder: async () => {
+      const res = await fetch(`${API_BASE}/api/files/browse-folder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!res.ok) throw new Error('Lỗi mở hộp thoại chọn thư mục');
+      const data = await res.json();
+      return data.path || '';
+    },
+
     saveFile: async (payload: {
       path: string;
       filename: string;

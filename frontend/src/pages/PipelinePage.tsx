@@ -25,7 +25,7 @@ export const PipelineModule: React.FC<Props> = ({
   const [loadingRowId, setLoadingRowId] = useState<string | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const addToast = (type: 'success' | 'error' | 'info', message: string) => {
     const id = Math.random().toString(36).substring(7);
@@ -82,7 +82,89 @@ export const PipelineModule: React.FC<Props> = ({
     addToast('success', 'Đã xóa các dòng đã chọn.');
   };
 
-  // 1. SINH ẢNH
+  // CHỌN THƯ MỤC LƯU QUA HỘP THOẠI WINDOWS
+  const handleBrowseFolderForRow = async (rowId: string) => {
+    try {
+      const path = await FlowService.files.browseFolder();
+      if (path) {
+        updateRow(rowId, 'savePath', path);
+        addToast('success', `Đã chọn thư mục: ${path}`);
+      }
+    } catch (e: any) {
+      addToast('error', `Lỗi mở hộp thoại: ${e.message}`);
+    }
+  };
+
+  // CHỌN THƯ MỤC VÀ ÁP DỤNG CHO TẤT CẢ CÁC DÒNG
+  const handleBrowseAndApplyAll = async () => {
+    try {
+      const path = await FlowService.files.browseFolder();
+      if (path) {
+        setItems(prev => {
+          const next = prev.map(r => ({ ...r, savePath: path }));
+          next.forEach(r => FlowService.storage.saveRow(r, isNews ? 'news' : 'production').catch(console.error));
+          return next;
+        });
+        addToast('success', `Đã áp dụng thư mục cho toàn bộ ${items.length} dòng: ${path}`);
+      }
+    } catch (e: any) {
+      addToast('error', `Lỗi mở hộp thoại: ${e.message}`);
+    }
+  };
+
+  // UPLOAD ẢNH THAM KHẢO
+  const handleUploadReferences = (rowId: string, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const base64Data = (e.target?.result as string).split(',')[1];
+        const newRef: ReferenceImage = {
+          id: crypto.randomUUID(),
+          base64: base64Data,
+          mimeType: file.type || 'image/jpeg',
+          mediaId: crypto.randomUUID()
+        };
+        setItems(prev => {
+          const next = prev.map(r => {
+            if (r.id === rowId) {
+              const updatedRefs = [...(r.referenceImages || []), newRef];
+              return { ...r, referenceImages: updatedRefs };
+            }
+            return r;
+          });
+          const row = next.find(r => r.id === rowId);
+          if (row) FlowService.storage.saveRow(row, isNews ? 'news' : 'production').catch(console.error);
+          return next;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    addToast('success', `Đã thêm ảnh tham khảo.`);
+  };
+
+  const handleDeleteReference = (rowId: string, refId: string) => {
+    setItems(prev => {
+      const next = prev.map(r => {
+        if (r.id === rowId) {
+          const updatedRefs = (r.referenceImages || []).filter(rf => rf.id !== refId);
+          return { ...r, referenceImages: updatedRefs };
+        }
+        return r;
+      });
+      const row = next.find(r => r.id === rowId);
+      if (row) FlowService.storage.saveRow(row, isNews ? 'news' : 'production').catch(console.error);
+      return next;
+    });
+  };
+
+  const handleInsert2CharPromptTemplate = (row: WorkflowRow) => {
+    const template = `Two characters in the same frame standing side by side. On the left is the first person (reference image 1, character A). On the right is the second person (reference image 2, character B). Both looking at the camera, highly detailed, realistic faces, cinematic lighting, 8k resolution.`;
+    updateRow(row.id, 'imagePrompt', template);
+    addToast('info', `STT ${row.stt}: Đã chèn mẫu Prompt ghép 2 nhân vật.`);
+  };
+
   const handleGenerateImage = async (row: WorkflowRow) => {
     if (!row.imagePrompt.trim()) {
       addToast('error', `STT ${row.stt}: Vui lòng nhập Prompt tạo ảnh.`);
@@ -116,7 +198,6 @@ export const PipelineModule: React.FC<Props> = ({
     }
   };
 
-  // 2. SINH CAPTION
   const handleGenerateCaption = async (row: WorkflowRow) => {
     const instruction = row.captionInstruction || row.imagePrompt;
     if (!instruction.trim()) {
@@ -138,7 +219,6 @@ export const PipelineModule: React.FC<Props> = ({
     }
   };
 
-  // 3. SINH GIỌNG ĐỌC TTS
   const handleGenerateTTS = async (row: WorkflowRow) => {
     if (!row.captionResult?.trim()) {
       addToast('error', `STT ${row.stt}: Cần có kết quả Caption trước khi đọc.`);
@@ -156,7 +236,6 @@ export const PipelineModule: React.FC<Props> = ({
     }
   };
 
-  // 4. AUTO RUN TOÀN BỘ ROW (Full Pipeline)
   const handleAutoRunRow = async (row: WorkflowRow) => {
     setLoadingRowId(row.id);
     updateRow(row.id, 'status', 'RUNNING');
@@ -176,10 +255,9 @@ export const PipelineModule: React.FC<Props> = ({
     }
   };
 
-  // 5. XUẤT TRỌN GÓI BUNDLE (1-Click Export)
   const handleExportBundle = async (row: WorkflowRow) => {
     if (!row.savePath?.trim()) {
-      addToast('error', `STT ${row.stt}: Vui lòng điền 'Thư mục lưu' trước khi xuất.`);
+      addToast('error', `STT ${row.stt}: Vui lòng bấm 'Chọn thư mục' trước khi xuất.`);
       return;
     }
     const currentImg = row.imageVersions?.[row.currentImageIndex];
@@ -208,12 +286,21 @@ export const PipelineModule: React.FC<Props> = ({
         <div>
           <h2 className="page-title">{title}</h2>
           <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-            Quản lý {items.length} dòng kịch bản — Tự động sinh Ảnh, Caption và Giọng đọc TTS
+            Quản lý {items.length} dòng kịch bản — Hỗ trợ nhiều ảnh tham khảo ghép 2 nhân vật, Giọng đọc TTS & Video
           </p>
         </div>
 
         {/* ACTION TOOLBAR */}
         <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="secondary"
+            icon="folder_open"
+            onClick={handleBrowseAndApplyAll}
+            title="Mở hộp thoại chọn thư mục lưu chung cho toàn bộ bảng"
+          >
+            Chọn thư mục chung
+          </Button>
+
           <Button variant="secondary" icon="add" onClick={handleAddRow}>
             Thêm hàng
           </Button>
@@ -232,7 +319,7 @@ export const PipelineModule: React.FC<Props> = ({
           <EmptyState
             icon="photo_library"
             title="Chưa có dữ liệu sản xuất"
-            description="Bắt đầu bằng cách thêm một hàng kịch bản mới hoặc nhập từ file CSV."
+            description="Bắt đầu bằng cách thêm một hàng kịch bản mới hoặc tải ảnh tham khảo lên."
             actionLabel="Thêm hàng đầu tiên"
             actionIcon="add"
             onAction={handleAddRow}
@@ -252,13 +339,14 @@ export const PipelineModule: React.FC<Props> = ({
                   />
                 </th>
                 <th style={{ width: 64 }}>STT</th>
-                <th style={{ width: 140 }}>Nhân Vật</th>
-                <th style={{ width: 260 }}>Prompt Tạo Ảnh</th>
-                <th style={{ width: 160 }}>Ảnh Đã Tạo</th>
-                <th style={{ width: 280 }}>Hướng Dẫn & Caption</th>
-                <th style={{ width: 160 }}>Giọng Đọc (TTS)</th>
-                <th style={{ width: 180 }}>Thư Mục Lưu & Xuất</th>
-                <th style={{ width: 130 }}>Thao Tác</th>
+                <th style={{ width: 130 }}>Nhân Vật</th>
+                <th style={{ width: 170 }}>Hình Tham Khảo (NV 1, 2...)</th>
+                <th style={{ width: 280 }}>Prompt Tạo Ảnh</th>
+                <th style={{ width: 140 }}>Ảnh Đã Tạo</th>
+                <th style={{ width: 260 }}>Hướng Dẫn & Caption</th>
+                <th style={{ width: 150 }}>Giọng Đọc (TTS)</th>
+                <th style={{ width: 210 }}>Thư Mục Lưu & Xuất</th>
+                <th style={{ width: 120 }}>Thao Tác</th>
               </tr>
             </thead>
             <tbody>
@@ -294,17 +382,78 @@ export const PipelineModule: React.FC<Props> = ({
                       <input
                         type="text"
                         className="ui-input"
-                        placeholder="Tên nhân vật..."
+                        placeholder="VD: Tuấn & Linh..."
                         value={row.characterName || ''}
                         onChange={e => updateRow(row.id, 'characterName', e.target.value)}
                       />
+                    </td>
+
+                    {/* Multi-Reference Images (NV 1, NV 2...) */}
+                    <td>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {row.referenceImages && row.referenceImages.map((ref, idx) => (
+                            <div
+                              key={ref.id}
+                              className="relative w-12 h-14 rounded-lg overflow-hidden border border-[var(--border)] group bg-black shrink-0"
+                            >
+                              <img
+                                src={`data:${ref.mimeType};base64,${ref.base64}`}
+                                alt={`Ref ${idx + 1}`}
+                                className="w-full h-full object-cover cursor-pointer"
+                                onClick={() => setPreviewImageUrl(`data:${ref.mimeType};base64,${ref.base64}`)}
+                              />
+                              <span className="absolute bottom-0 inset-x-0 bg-black/75 text-white text-[9px] font-extrabold text-center py-0.5">
+                                NV {idx + 1}
+                              </span>
+                              <button
+                                type="button"
+                                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => handleDeleteReference(row.id, ref.id)}
+                              >
+                                <span className="material-symbols-outlined text-[11px]">close</span>
+                              </button>
+                            </div>
+                          ))}
+
+                          {/* Add button */}
+                          <button
+                            type="button"
+                            className="w-12 h-14 rounded-lg border-2 border-dashed border-[var(--border-strong)] hover:border-[var(--primary)] text-[var(--text-muted)] hover:text-[var(--primary)] flex flex-col items-center justify-center gap-0.5 text-[9.5px] font-bold transition-all bg-[var(--bg-soft)] shrink-0"
+                            onClick={() => fileInputRefs.current[row.id]?.click()}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">add_photo_alternate</span>
+                            <span>+ NV</span>
+                          </button>
+                        </div>
+
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          ref={el => (fileInputRefs.current[row.id] = el)}
+                          className="hidden"
+                          onChange={e => handleUploadReferences(row.id, e.target.files)}
+                        />
+
+                        {row.referenceImages && row.referenceImages.length >= 2 && (
+                          <button
+                            type="button"
+                            className="text-[10px] text-[var(--primary)] font-bold hover:underline flex items-center gap-1"
+                            onClick={() => handleInsert2CharPromptTemplate(row)}
+                          >
+                            <span className="material-symbols-outlined text-[13px]">auto_fix_high</span>
+                            Mẫu Prompt 2 NV
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                     {/* Image Prompt */}
                     <td>
                       <textarea
                         className="ui-textarea"
-                        placeholder="Nhập prompt mô tả cảnh ảnh chi tiết..."
+                        placeholder="Nhập prompt mô tả cảnh và vị trí của 2 nhân vật..."
                         value={row.imagePrompt || ''}
                         onChange={e => updateRow(row.id, 'imagePrompt', e.target.value)}
                       />
@@ -415,14 +564,25 @@ export const PipelineModule: React.FC<Props> = ({
 
                     {/* Save Path & Export */}
                     <td>
-                      <input
-                        type="text"
-                        className="ui-input text-[11px]"
-                        placeholder="D:\VideoMMO\Out"
-                        value={row.savePath || ''}
-                        onChange={e => updateRow(row.id, 'savePath', e.target.value)}
-                      />
-                      <div className="mt-1.5">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            className="ui-input text-[11px] flex-1 min-w-0"
+                            placeholder="D:\VideoMMO\Out"
+                            value={row.savePath || ''}
+                            onChange={e => updateRow(row.id, 'savePath', e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            className="px-2 py-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-soft)] hover:bg-[var(--primary-soft)] hover:border-[var(--primary)] text-[var(--text-main)] text-[11px] font-bold shrink-0 transition-colors flex items-center gap-0.5"
+                            title="Chọn thư mục trên máy tính"
+                            onClick={() => handleBrowseFolderForRow(row.id)}
+                          >
+                            <span className="material-symbols-outlined text-[15px]">folder_open</span>
+                          </button>
+                        </div>
+
                         <Button
                           size="sm"
                           variant="success"

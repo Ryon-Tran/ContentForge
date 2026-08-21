@@ -37,6 +37,7 @@ export interface IService {
   };
 
   files: {
+    browseFolder: () => Promise<string>;
     saveFile: (payload: {
       path: string;
       filename: string;

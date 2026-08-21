@@ -155,54 +155,35 @@ def get_ai_config(
 # GET CONFIGS
 # =========================================================
 
-@router.get(
-    "/ai-providers"
-)
+@router.get("/ai-providers")
 def get_ai_providers():
-
     conn = get_db()
-
-
     try:
-
         rows = conn.execute(
             """
-            SELECT
-                id,
-                name,
-                provider,
-                type,
-                model,
-                base_url,
-                api_key,
-                is_active,
-                is_default,
-                created_at
+            SELECT *
             FROM ai_configs
             ORDER BY created_at ASC
             """
         ).fetchall()
-
     finally:
-
         conn.close()
 
-
     providers = []
-
     for row in rows:
+        row_dict = dict(row)
         providers.append({
-            "id":           row["id"],
-            "name":         row["name"],
-            "provider":     row["provider"],
-            "type":         row["type"],
-            "model":        row["model"],
-            "baseUrl":      row["base_url"],
-            "apiKeyMasked": mask_api_key(row["api_key"]),
-            "isActive":     bool(row["is_active"]),
-            "isDefault":    bool(row["is_default"]),
-            "extraConfig":  _parse_extra_config(row["extra_config"]),
-            "createdAt":    row["created_at"],
+            "id":           row_dict.get("id"),
+            "name":         row_dict.get("name"),
+            "provider":     row_dict.get("provider"),
+            "type":         row_dict.get("type"),
+            "model":        row_dict.get("model"),
+            "baseUrl":      row_dict.get("base_url"),
+            "apiKeyMasked": mask_api_key(row_dict.get("api_key") or ""),
+            "isActive":     bool(row_dict.get("is_active")),
+            "isDefault":    bool(row_dict.get("is_default")),
+            "extraConfig":  _parse_extra_config(row_dict.get("extra_config")),
+            "createdAt":    row_dict.get("created_at"),
         })
 
     return {"providers": providers}
@@ -612,6 +593,16 @@ async def test_ai_connection(data: TestConnectionRequest):
             }
 
         # -----------------------------------------------
+        # Pollinations.ai: Free 100% không cần key
+        # -----------------------------------------------
+        if provider in {"pollinations", "polli", "pollination"}:
+            return {
+                "ok": True,
+                "message": "Pollinations.ai sẵn sàng! (Miễn phí 100%, không cần API Key)",
+                "models": ["flux", "flux-realism", "flux-anime", "flux-3d", "turbo"]
+            }
+
+        # -----------------------------------------------
         # Google / Gemini: GET /models
         # -----------------------------------------------
         if provider in {"google", "gemini"}:
@@ -628,34 +619,22 @@ async def test_ai_connection(data: TestConnectionRequest):
             return {"ok": True, "message": "Google/Gemini API key hợp lệ."}
 
         # -----------------------------------------------
-        # Anthropic: POST /v1/messages với max_tokens nhỏ
+        # Hugging Face: GET /api/whoami-v2
         # -----------------------------------------------
-        if provider in {"anthropic", "claude"}:
-            _base = base_url or "https://api.anthropic.com"
-            endpoint = (
-                f"{_base}/messages"
-                if _base.endswith("/v1")
-                else f"{_base}/v1/messages"
-            )
-            anthropic_version = extra.get("anthropic_version", "2023-06-01")
+        if provider in {"huggingface", "hf"}:
+            if not api_key:
+                return {"ok": False, "message": "Hugging Face cần API Token (hf_...)"}
             await asyncio.wait_for(
                 request_json(
-                    "POST", endpoint, api_key,
-                    headers={
-                        "Content-Type": "application/json",
-                        "x-api-key": api_key,
-                        "anthropic-version": anthropic_version,
-                    },
+                    "GET",
+                    "https://huggingface.co/api/whoami-v2",
+                    api_key,
+                    headers={"Authorization": f"Bearer {api_key}"},
                     auth_bearer=False,
-                    json={
-                        "model": model or "claude-haiku-4-5",
-                        "max_tokens": 1,
-                        "messages": [{"role": "user", "content": "hi"}],
-                    },
                 ),
-                timeout=20.0,
+                timeout=12.0,
             )
-            return {"ok": True, "message": "Anthropic/Claude API key hợp lệ."}
+            return {"ok": True, "message": f"Hugging Face Token hợp lệ! Sẵn sàng tạo ảnh với {model or 'FLUX.1-schnell'}."}
 
         # -----------------------------------------------
         # OpenAI + OpenAI-compatible: GET /models

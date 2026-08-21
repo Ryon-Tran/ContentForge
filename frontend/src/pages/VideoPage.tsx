@@ -39,6 +39,34 @@ export const VideoModule: React.FC<Props> = ({
     });
   };
 
+  const handleBrowseFolderForRow = async (rowId: string) => {
+    try {
+      const path = await FlowService.files.browseFolder();
+      if (path) {
+        updateRow(rowId, 'savePath', path);
+        addToast('success', `Đã chọn thư mục: ${path}`);
+      }
+    } catch (e: any) {
+      addToast('error', `Lỗi mở hộp thoại: ${e.message}`);
+    }
+  };
+
+  const handleBrowseAndApplyAll = async () => {
+    try {
+      const path = await FlowService.files.browseFolder();
+      if (path) {
+        setItems(prev => {
+          const next = prev.map(r => ({ ...r, savePath: path }));
+          next.forEach(r => FlowService.storage.saveRow(r, 'video').catch(console.error));
+          return next;
+        });
+        addToast('success', `Đã áp dụng thư mục cho toàn bộ ${items.length} dòng: ${path}`);
+      }
+    } catch (e: any) {
+      addToast('error', `Lỗi mở hộp thoại: ${e.message}`);
+    }
+  };
+
   // SINH VIDEO
   const handleGenerateVideo = async (row: VideoRow) => {
     const prodRow = productionItems.find(p => p.id === row.id);
@@ -95,7 +123,7 @@ export const VideoModule: React.FC<Props> = ({
       return;
     }
     if (!row.savePath?.trim()) {
-      addToast('error', `STT ${row.stt}: Vui lòng nhập thư mục lưu.`);
+      addToast('error', `STT ${row.stt}: Vui lòng chọn thư mục lưu.`);
       return;
     }
 
@@ -126,6 +154,17 @@ export const VideoModule: React.FC<Props> = ({
             Dùng ảnh đã chọn từ tab Sản Xuất làm First Frame để sinh Video chuyển động AI (Veo / Grok)
           </p>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            icon="folder_open"
+            onClick={handleBrowseAndApplyAll}
+            title="Mở hộp thoại chọn thư mục lưu chung cho toàn bộ bảng Video"
+          >
+            Chọn thư mục chung
+          </Button>
+        </div>
       </div>
 
       {/* TABLE */}
@@ -144,8 +183,8 @@ export const VideoModule: React.FC<Props> = ({
                 <th style={{ width: 120 }}>Ảnh Nguồn</th>
                 <th style={{ width: 300 }}>Prompt Chuyển Động Video</th>
                 <th style={{ width: 280 }}>Trình Phát Video (Preview)</th>
-                <th style={{ width: 200 }}>Thư Mục Lưu</th>
-                <th style={{ width: 140 }}>Thao Tác</th>
+                <th style={{ width: 230 }}>Thư Mục Lưu</th>
+                <th style={{ width: 130 }}>Thao Tác</th>
               </tr>
             </thead>
             <tbody>
@@ -236,15 +275,26 @@ export const VideoModule: React.FC<Props> = ({
 
                     {/* Save Path */}
                     <td>
-                      <input
-                        type="text"
-                        className="ui-input text-[11px]"
-                        placeholder="D:\VideoMMO\Out"
-                        value={row.savePath || ''}
-                        onChange={e => updateRow(row.id, 'savePath', e.target.value)}
-                      />
-                      {currentVid && (
-                        <div className="mt-1.5">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            className="ui-input text-[11px] flex-1 min-w-0"
+                            placeholder="D:\VideoMMO\Out"
+                            value={row.savePath || ''}
+                            onChange={e => updateRow(row.id, 'savePath', e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            className="px-2 py-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-soft)] hover:bg-[var(--primary-soft)] hover:border-[var(--primary)] text-[var(--text-main)] text-[11px] font-bold shrink-0 transition-colors flex items-center gap-0.5"
+                            title="Chọn thư mục trên máy tính"
+                            onClick={() => handleBrowseFolderForRow(row.id)}
+                          >
+                            <span className="material-symbols-outlined text-[15px]">folder_open</span>
+                          </button>
+                        </div>
+
+                        {currentVid && (
                           <Button
                             size="sm"
                             variant={row.saveConfirmed ? 'success' : 'primary'}
@@ -254,8 +304,8 @@ export const VideoModule: React.FC<Props> = ({
                           >
                             {row.saveConfirmed ? 'Đã Lưu Video ✓' : 'Lưu Video .mp4'}
                           </Button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </td>
 
                     {/* Actions */}
